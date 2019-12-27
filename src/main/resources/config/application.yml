@@ -1,0 +1,7 @@
+logging.config: classpath:config/logback.xml.xml
+logging.level.io.netty.handler.logging.LoggingHandler: DEBUG
+
+---
+
+logging.file: http-proxy-netty.log
+logging.level.io.netty.handler.logging.LoggingHandler: ERROR

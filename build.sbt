@@ -5,8 +5,7 @@ version := "0.1"
 scalaVersion := "2.13.1"
 
 
-lazy val akkaHttpV = "10.1.11"
-lazy val akkaV = "2.6.1"
+
 lazy val scalaTestV = "3.1.0"
 
 lazy val root = (project in file(".")).
@@ -17,15 +16,20 @@ lazy val root = (project in file(".")).
     )),
     name := "hello-world",
     libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpV ,
-      "com.typesafe.akka" %% "akka-stream" % akkaV,
-      "com.typesafe.akka" %% "akka-slf4j" % akkaV,
-      "org.scalaz" %% "scalaz-core" % "7.2.27",
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
+      "com.typesafe" % "config" % "1.4.0",
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "org.scalatest" %% "scalatest" % scalaTestV % Test,
       "com.athaydes.rawhttp" % "rawhttp-core" % "2.2.1",
-      "commons-io" % "commons-io" % "2.6"
+      "commons-io" % "commons-io" % "2.6",
+      "com.lambdista" % "try" % "0.3.1",
+      "com.squareup.okhttp3" % "okhttp" % "3.13.1",
+
+      "org.json4s" %% "json4s-native" % "3.7.0-M1",
+      "org.json4s" %% "json4s-jackson" % "3.7.0-M1",
+      "com.github.jgonian" % "commons-ip-math" % "1.32",
+
+      "io.netty" % "netty-all" % "4.1.44.Final",
+      "org.slf4j" % "log4j-over-slf4j" % "1.7.30"
 
     )
   )

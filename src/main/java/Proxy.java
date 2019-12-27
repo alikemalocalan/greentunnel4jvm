@@ -11,7 +11,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
 
 
 /**
@@ -106,7 +105,7 @@ public class Proxy {
 				// Socket exception is triggered by management system to shut down the proxy
 				System.out.println("Server closed");
 			} catch (IOException e) {
-				e.printStackTrace();
+				System.out.println("Socket connection Error");
 			}
 		}
 	}
