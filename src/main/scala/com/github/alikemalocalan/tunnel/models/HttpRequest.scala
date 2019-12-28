@@ -1,4 +1,4 @@
-package com.github.alikemalocalan.tunnel
+package com.github.alikemalocalan.tunnel.models
 
 import java.net.URI
 

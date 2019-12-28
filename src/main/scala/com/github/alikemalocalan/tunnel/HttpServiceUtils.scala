@@ -3,13 +3,14 @@ package com.github.alikemalocalan.tunnel
 import java.net.URI
 import java.nio.charset.Charset
 
+import com.github.alikemalocalan.tunnel.models.HttpRequest
 import io.netty.buffer.ByteBuf
 import io.netty.channel.Channel
 import io.netty.handler.codec.http.DefaultHttpHeaders
 
 import scala.util.Try
 
-object HttpRequestUtils {
+object HttpServiceUtils {
   val clientHelloMTU: Int = 100
 
   def fromByteBuf(in: ByteBuf, chunky: String): HttpRequest = {
