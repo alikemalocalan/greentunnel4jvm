@@ -4,11 +4,13 @@ import java.net.URI
 import java.nio.charset.Charset
 
 import io.netty.buffer.ByteBuf
+import io.netty.channel.Channel
 import io.netty.handler.codec.http.DefaultHttpHeaders
 
 import scala.util.Try
 
 object HttpRequestUtils {
+  val clientHelloMTU: Int = 100
 
   def fromByteBuf(in: ByteBuf, chunky: String): HttpRequest = {
     if (chunky.toUpperCase.startsWith("CONNECT")) {
@@ -59,10 +61,18 @@ object HttpRequestUtils {
     }
 
     val result = readByteBuf(in.isReadable)
-    while (in.isReadable) {
-      in.readByte()
-    }
+    in.clear()
     result
   }
 
+  @scala.annotation.tailrec
+  def writeToHttps(in: ByteBuf, remoteChannel: Channel): Unit = {
+    if (in.isReadable) {
+      if (in.readableBytes > clientHelloMTU)
+        remoteChannel.write(in.readSlice(clientHelloMTU))
+      else remoteChannel.write(in.readBytes(in.readableBytes))
+      writeToHttps(in, remoteChannel)
+    } else remoteChannel.flush()
+
+  }
 }

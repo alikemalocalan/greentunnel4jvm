@@ -17,7 +17,6 @@ public class HttpProxyClientHandler extends ChannelInboundHandlerAdapter {
     private Channel clientChannel;
     private Channel remoteChannel;
     private HttpRequest header;
-    String chunk = null;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
@@ -26,12 +25,11 @@ public class HttpProxyClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        ByteBuf in = (ByteBuf) msg;
         if (header != null) {
-            remoteChannel.writeAndFlush(msg); // just forward
+            HttpRequestUtils.writeToHttps(in, remoteChannel); // just forward
             return;
         }
-
-        ByteBuf in = (ByteBuf) msg;
         final ByteBuf fullRequest = in.copy();
 
         String chunk = HttpRequestUtils.readMainPart(in);
@@ -61,7 +59,7 @@ public class HttpProxyClientHandler extends ChannelInboundHandlerAdapter {
                 if (!header.isHttps())
                     remoteChannel.writeAndFlush(Unpooled.wrappedBuffer(header.toString().getBytes()));
                 else {
-                    remoteChannel.writeAndFlush(in);
+                    HttpRequestUtils.writeToHttps(in, remoteChannel);
                 }
             } else {
                 in.release();

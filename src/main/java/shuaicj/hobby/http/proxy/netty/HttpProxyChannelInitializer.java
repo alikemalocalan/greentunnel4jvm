@@ -10,7 +10,7 @@ public class HttpProxyChannelInitializer extends ChannelInitializer<SocketChanne
     @Override
     protected void initChannel(SocketChannel ch) {
         ch.pipeline().addLast(
-                new LoggingHandler(LogLevel.DEBUG),
+                new LoggingHandler(LogLevel.INFO),
                 new HttpProxyClientHandler()
         );
     }

@@ -21,13 +21,13 @@ public class HttpProxyServer {
     public void start() {
         new Thread(() -> {
             logger.info("HttpProxyServer started on port: {}", port);
-            EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+            EventLoopGroup bossGroup = new NioEventLoopGroup(5);
             EventLoopGroup workerGroup = new NioEventLoopGroup();
             try {
                 ServerBootstrap b = new ServerBootstrap();
                 b.group(bossGroup, workerGroup)
                         .channel(NioServerSocketChannel.class)
-                        .handler(new LoggingHandler(LogLevel.DEBUG))
+                        .handler(new LoggingHandler(LogLevel.INFO))
                         .childHandler(new HttpProxyChannelInitializer())
                         .bind(port).sync().channel().closeFuture().sync();
             } catch (InterruptedException e) {

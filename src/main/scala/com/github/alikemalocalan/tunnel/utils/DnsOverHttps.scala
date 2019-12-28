@@ -13,8 +13,8 @@ case class Answer(TTL: Long, data: String)
 case class CloudFlareResponse(Answer: Array[Answer])
 
 object DnsOverHttps {
-
-  val request: String => String = (url: String) => s"https://ads-doh.securedns.eu/dns-query?name=$url&type=A"
+  //https://ads-doh.securedns.eu/dns-query
+  val request: String => String = (url: String) => s"https://cloudflare-dns.com/dns-query?name=$url&type=A"
 
   implicit val formats: AnyRef with Formats = Serialization.formats(NoTypeHints)
 

@@ -1,5 +1,5 @@
 logging.config: classpath:config/logback.xml.xml
-logging.level.io.netty.handler.logging.LoggingHandler: DEBUG
+logging.level.io.netty.handler.logging.LoggingHandler: INFO
 
 ---
 
