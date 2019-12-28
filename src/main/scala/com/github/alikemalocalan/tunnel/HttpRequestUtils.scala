@@ -11,16 +11,15 @@ import scala.util.Try
 object HttpRequestUtils {
 
   def fromByteBuf(in: ByteBuf, chunky: String): HttpRequest = {
-    val fullReqAsByteBuf = in.asReadOnly
     if (chunky.toUpperCase.startsWith("CONNECT")) {
       val firstLine = chunky.split(" ")
       val method = firstLine(0)
       val uri = if (firstLine(1).toLowerCase.startsWith("https://")) new URI(firstLine(1).toLowerCase) else new URI(s"https://${firstLine(1).toLowerCase}")
       val port = if (Try(uri.getPort).get != -1) Try(uri.getPort).getOrElse(443) else 443
-      HttpRequest(fullReqAsByteBuf, method, uri, port = port, isHttps = true)
+      HttpRequest(method, uri, port = port, isHttps = true)
     } else {
       val headers = new DefaultHttpHeaders()
-      val reqAsString: String = fullReqAsByteBuf.toString(Charset.defaultCharset)
+      val reqAsString: String = in.asReadOnly.toString(Charset.defaultCharset)
       val mainPart = reqAsString.split("\r\n\r\n")
       val headerLine = mainPart.head.split("\r\n")
       val firstLine = headerLine.head.split(" ")
@@ -39,12 +38,9 @@ object HttpRequestUtils {
         else headers.add(arr.head, arr(1))
       }
       headers.remove("Proxy-Connection")
-      HttpRequest(fullReqAsByteBuf, method, uri, Some(protocolVersion), port, false, Some(headers), Some(payLoad))
+      HttpRequest(method, uri, Some(protocolVersion), port, false, Some(headers), Some(payLoad))
     }
-
-
   }
-
 
   def readMainPart(in: ByteBuf): String = {
     val lineBuf = new StringBuffer()

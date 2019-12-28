@@ -2,10 +2,9 @@ package com.github.alikemalocalan.tunnel
 
 import java.net.URI
 
-import io.netty.buffer.ByteBuf
 import io.netty.handler.codec.http.HttpHeaders
 
-case class HttpRequest(fullRequest: ByteBuf, method: String, uri: URI, protocolVersion: Option[String] = None, port: Int, isHttps: Boolean, headers: Option[HttpHeaders] = None, payload: Option[String] = None) {
+case class HttpRequest(method: String, uri: URI, protocolVersion: Option[String] = None, port: Int, isHttps: Boolean, headers: Option[HttpHeaders] = None, payload: Option[String] = None) {
 
   def headersAsString: String = {
     val builder = new StringBuilder("")

@@ -7,7 +7,6 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,8 +58,10 @@ public class HttpProxyClientHandler extends ChannelInboundHandlerAdapter {
             if (future.isSuccess()) {
                 clientChannel.config().setAutoRead(true); // connection is ready, enable AutoRead
                 if (!header.isHttps())
-                    remoteChannel.write(header.toString().getBytes());
-                remoteChannel.writeAndFlush(in);
+                    remoteChannel.writeAndFlush(Unpooled.wrappedBuffer(header.toString().getBytes()));
+                else {
+                    remoteChannel.writeAndFlush(fullRequest);
+                }
             } else {
                 in.release();
                 clientChannel.close();
