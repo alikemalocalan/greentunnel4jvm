@@ -5,11 +5,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
-/**
- * The channel initializer.
- *
- * @author shuaicj 2017/09/21
- */
 public class HttpProxyChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     @Override

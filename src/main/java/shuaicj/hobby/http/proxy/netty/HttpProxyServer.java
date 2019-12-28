@@ -9,11 +9,6 @@ import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A simple http proxy server.
- *
- * @author shuaicj 2017/09/21
- */
 public class HttpProxyServer {
     Logger logger = LoggerFactory.getLogger(this.getClass());
 

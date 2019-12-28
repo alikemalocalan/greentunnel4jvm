@@ -8,11 +8,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Handle data from remote.
- *
- * @author shuaicj 2017/09/21
- */
 public class HttpProxyRemoteHandler extends ChannelInboundHandlerAdapter {
     Logger logger = LoggerFactory.getLogger(this.getClass());
     private Channel clientChannel;

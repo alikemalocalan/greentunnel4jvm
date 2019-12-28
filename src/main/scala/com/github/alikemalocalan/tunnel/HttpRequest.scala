@@ -4,7 +4,7 @@ import java.net.URI
 
 import io.netty.handler.codec.http.HttpHeaders
 
-case class HttpRequest(method: String, uri: URI, protocolVersion: Option[String] = None, port: Int, isHttps: Boolean, headers: Option[HttpHeaders] = None, payload: Option[String] = None) {
+case class HttpRequest(method: String, uri: URI, protocolVersion: String, port: Int, isHttps: Boolean, headers: Option[HttpHeaders] = None, payload: Option[String] = None) {
 
   def headersAsString: String = {
     val builder = new StringBuilder("")
@@ -17,11 +17,13 @@ case class HttpRequest(method: String, uri: URI, protocolVersion: Option[String]
 
 
   def getPath: String = {
-    Option(uri.getPath).filter(_.nonEmpty) getOrElse("/")
+    Option(uri.getPath).filter(_.nonEmpty) getOrElse ("/")
   }
 
 
   def host: String = uri.getHost
 
-  override def toString: String = String.format("%s %s %s\r\n", method, getPath, protocolVersion.getOrElse("HTTP/1.1")) + headersAsString + "\r\n" + payload.getOrElse("")
+  override def toString: String = String.format("%s %s %s\r\n", method, getPath, protocolVersion) + headersAsString + "\r\n" + payload.getOrElse("")
+
+  def toStringForHTTPS: String = String.format("CONNECT %s:%s %s\r\n", host, port, protocolVersion)
 }

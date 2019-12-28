@@ -15,10 +15,10 @@ object HttpRequestUtils {
       val firstLine = chunky.split(" ")
       val method = firstLine(0)
       val uri = if (firstLine(1).toLowerCase.startsWith("https://")) new URI(firstLine(1).toLowerCase) else new URI(s"https://${firstLine(1).toLowerCase}")
+      val protocolVersion = firstLine(2)
       val port = if (Try(uri.getPort).get != -1) Try(uri.getPort).getOrElse(443) else 443
-      HttpRequest(method, uri, port = port, isHttps = true)
+      HttpRequest(method, uri, port = port, protocolVersion = protocolVersion, isHttps = true)
     } else {
-      val headers = new DefaultHttpHeaders()
       val reqAsString: String = in.asReadOnly.toString(Charset.defaultCharset)
       val mainPart = reqAsString.split("\r\n\r\n")
       val headerLine = mainPart.head.split("\r\n")
@@ -30,6 +30,7 @@ object HttpRequestUtils {
       val protocolVersion = firstLine(2)
       val payLoad = if (mainPart.length == 2) mainPart(1) else ""
 
+      val headers = new DefaultHttpHeaders()
       for (headerLine <- headerLine.drop(1)) {
         val arr = headerLine.split(":")
         if (headerLine.startsWith("Host: ")) {
@@ -38,23 +39,30 @@ object HttpRequestUtils {
         else headers.add(arr.head, arr(1))
       }
       headers.remove("Proxy-Connection")
-      HttpRequest(method, uri, Some(protocolVersion), port, false, Some(headers), Some(payLoad))
+      HttpRequest(method, uri, protocolVersion, port, false, Some(headers), Some(payLoad))
     }
   }
 
   def readMainPart(in: ByteBuf): String = {
     val lineBuf = new StringBuffer()
-    while (in.isReadable()) {
-      val b: Byte = in.readByte()
-      lineBuf.append(b.toChar)
-      val len: Int = lineBuf.length()
-      if (len >= 2 && lineBuf.substring(len - 2).equals("\r\n")) {
-        val line: String = lineBuf.substring(0, len - 2)
-        lineBuf.delete(0, len)
-        return line
-      }
+
+    @scala.annotation.tailrec
+    def readByteBuf(isReadable: Boolean): String = {
+      if (isReadable) {
+        val b: Byte = in.readByte()
+        lineBuf.append(b.toChar)
+        val len: Int = lineBuf.length()
+        if (len >= 2 && lineBuf.substring(len - 2).equals("\r\n")) {
+          lineBuf.substring(0, len - 2)
+        } else readByteBuf(in.isReadable)
+      } else null
     }
-    null
+
+    val result = readByteBuf(in.isReadable)
+    while (in.isReadable) {
+      in.readByte()
+    }
+    result
   }
 
 }

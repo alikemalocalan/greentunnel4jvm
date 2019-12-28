@@ -10,17 +10,14 @@ import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Handle data from client.
- *
- * @author shuaicj 2017/09/21
- */
+
 public class HttpProxyClientHandler extends ChannelInboundHandlerAdapter {
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private Channel clientChannel;
     private Channel remoteChannel;
     private HttpRequest header;
+    String chunk = null;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
@@ -29,16 +26,20 @@ public class HttpProxyClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        if (header != null) {
+            remoteChannel.writeAndFlush(msg); // just forward
+            return;
+        }
 
         ByteBuf in = (ByteBuf) msg;
         final ByteBuf fullRequest = in.copy();
 
         String chunk = HttpRequestUtils.readMainPart(in);
-        if(chunk == null){
+        if (chunk == null) {
             in.release();
             return;
         }
-        header = HttpRequestUtils.fromByteBuf(fullRequest,chunk);
+        header = HttpRequestUtils.fromByteBuf(fullRequest, chunk);
 
         logger.info(System.currentTimeMillis() + " {}", header);
         clientChannel.config().setAutoRead(false); // disable AutoRead until remote connection is ready
@@ -60,7 +61,7 @@ public class HttpProxyClientHandler extends ChannelInboundHandlerAdapter {
                 if (!header.isHttps())
                     remoteChannel.writeAndFlush(Unpooled.wrappedBuffer(header.toString().getBytes()));
                 else {
-                    remoteChannel.writeAndFlush(fullRequest);
+                    remoteChannel.writeAndFlush(in);
                 }
             } else {
                 in.release();
