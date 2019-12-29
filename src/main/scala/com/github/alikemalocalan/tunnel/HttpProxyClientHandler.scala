@@ -28,7 +28,7 @@ class HttpProxyClientHandler extends ChannelInboundHandlerAdapter {
       if (chunk == null) in.release
       else header = HttpServiceUtils.fromByteBuf(fullRequest, chunk)
 
-      logger.info(System.currentTimeMillis + " {}", header)
+      logger.info(s"${System.currentTimeMillis}| ${header.toString}")
       clientChannel.config.setAutoRead(false) // disable AutoRead until remote connection is ready
 
       if (header.isHttps) // if https, respond 200 to create tunnel

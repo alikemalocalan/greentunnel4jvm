@@ -1,10 +1,8 @@
 package com.github.alikemalocalan.tunnel.utils
 
-import com.github.jgonian.ipmath
-import com.github.jgonian.ipmath.Ipv4
+import com.github.jgonian.ipmath.{Ipv4, Ipv6}
 import org.json4s._
-import org.json4s.jackson.JsonMethods._
-import org.json4s.native.Serialization
+import org.json4s.native.JsonMethods._
 
 import scala.util.{Failure, Success, Try}
 
@@ -13,11 +11,10 @@ case class Answer(TTL: Long, data: String)
 case class CloudFlareResponse(Answer: Array[Answer])
 
 object DnsOverHttps {
-  //https://ads-doh.securedns.eu/dns-query
+  // Alternative https://ads-doh.securedns.eu/dns-query
   val request: String => String = (url: String) => s"https://cloudflare-dns.com/dns-query?name=$url&type=A"
 
-  implicit val formats: AnyRef with Formats = Serialization.formats(NoTypeHints)
-
+  implicit val formats = DefaultFormats
 
   @scala.annotation.tailrec
   def lookUp(address: String): String = {
@@ -37,11 +34,12 @@ object DnsOverHttps {
   def isIpAddress(address: String): Boolean = {
 
 
-    def isIPV4 =Try(Ipv4.of(address).toString == address) match {
+    def isIPV4 = Try(Ipv4.of(address).toString == address) match {
       case Success(_) => true
       case Failure(_) => false
     }
-    def isIPV6= Try(ipmath.Ipv6.of(address).toString == address) match {
+
+    def isIPV6 = Try(Ipv6.of(address).toString == address) match {
       case Success(_) => true
       case Failure(_) => false
     }
