@@ -2,8 +2,7 @@ package com.github.alikemalocalan.tunnel.utils
 
 import java.util.concurrent.TimeUnit.SECONDS
 
-import okhttp3.{MediaType, OkHttpClient, Request, Response}
-import org.apache.log4j.Logger
+import okhttp3.{OkHttpClient, Request, Response}
 import org.slf4j
 import org.slf4j.LoggerFactory
 
@@ -13,7 +12,6 @@ import scala.util.{Failure, Success, Try}
 object OkHttpClientUtil {
   val logger: slf4j.Logger = LoggerFactory.getLogger(this.getClass)
 
-  private val APPLICATION_JSON: MediaType = MediaType.parse("application/json; charset=utf-8")
   private val defaultRetryCount = 5
 
   private val client = new OkHttpClient.Builder()

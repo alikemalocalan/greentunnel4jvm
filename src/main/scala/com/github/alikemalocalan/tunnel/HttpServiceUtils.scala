@@ -4,8 +4,8 @@ import java.net.URI
 import java.nio.charset.Charset
 
 import com.github.alikemalocalan.tunnel.models.HttpRequest
-import io.netty.buffer.ByteBuf
-import io.netty.channel.Channel
+import io.netty.buffer.{ByteBuf, Unpooled}
+import io.netty.channel.{Channel, ChannelFuture, ChannelFutureListener}
 import io.netty.handler.codec.http.DefaultHttpHeaders
 
 import scala.util.Try
@@ -68,12 +68,22 @@ object HttpServiceUtils {
 
   @scala.annotation.tailrec
   def writeToHttps(in: ByteBuf, remoteChannel: Channel): Unit = {
-    if (in.isReadable) {
-      if (in.readableBytes > clientHelloMTU)
-        remoteChannel.write(in.readSlice(clientHelloMTU))
-      else remoteChannel.write(in.readBytes(in.readableBytes))
-      writeToHttps(in, remoteChannel)
-    } else remoteChannel.flush()
-
+    if (in.isReadable && remoteChannel.isOpen && remoteChannel.isActive && remoteChannel.isWritable) {
+      if (in.readableBytes > clientHelloMTU) {
+        remoteChannel.writeAndFlush(in.readSlice(clientHelloMTU).retain())
+          .addListener { future: ChannelFuture =>
+            if (future.isSuccess) remoteChannel.read()
+            else future.channel().close()
+          }
+        writeToHttps(in, remoteChannel)
+      } else remoteChannel.writeAndFlush(in.readSlice(in.readableBytes).retain())
+        .addListener { future: ChannelFuture =>
+          if (future.isSuccess) remoteChannel.read()
+          else future.channel().close()
+        }
+    }
   }
+
+  def closeOnFlush(ch: Channel): Unit =
+    if (ch != null && ch.isActive) ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
 }

@@ -19,14 +19,12 @@ object HttpProxyServer extends App with Config {
 
       logger.info("HttpProxyServer started on port: {}", port)
       val bossGroup = new NioEventLoopGroup(threadCount)
-      val workerGroup: EventLoopGroup = new NioEventLoopGroup(threadCount)
+      val workerGroup: EventLoopGroup = new NioEventLoopGroup(1)
 
       Try {
         new ServerBootstrap()
           .group(bossGroup, workerGroup)
           .channel(classOf[NioServerSocketChannel])
-          //.option(ChannelOption.TCP_NODELAY, true)
-          //.option(ChannelOption.SO_KEEPALIVE, true)
           .handler(new LoggingHandler(LogLevel.INFO))
           .childHandler(new HttpProxyChannelInitializer())
           .bind(port)
