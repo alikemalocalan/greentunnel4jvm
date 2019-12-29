@@ -13,9 +13,8 @@ lazy val root = (project in file(".")).
     name := "grenn-tunnel-scala",
     libraryDependencies ++= Seq(
       "io.netty" % "netty-all" % "4.1.44.Final",
-      "com.squareup.okhttp3" % "okhttp" % "4.2.2",
 
-      "org.json4s" %% "json4s-native" % "3.7.0-M1",
+      "com.lihaoyi" %% "upickle" % "0.9.6", // For json Parsing
 
       "com.typesafe" % "config" % "1.4.0",
       "ch.qos.logback" % "logback-classic" % "1.2.3",
