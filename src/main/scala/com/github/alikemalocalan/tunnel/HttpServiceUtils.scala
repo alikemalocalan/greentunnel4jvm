@@ -68,19 +68,14 @@ object HttpServiceUtils {
 
   @scala.annotation.tailrec
   def writeToHttps(in: ByteBuf, remoteChannel: Channel): Unit = {
-    if (in.isReadable && remoteChannel.isOpen && remoteChannel.isActive && remoteChannel.isWritable) {
-      if (in.readableBytes > clientHelloMTU) {
-        remoteChannel.writeAndFlush(in.readSlice(clientHelloMTU).retain())
-          .addListener { future: ChannelFuture =>
-            if (future.isSuccess) remoteChannel.read()
-            else future.channel().close()
-          }
-        writeToHttps(in, remoteChannel)
-      } else remoteChannel.writeAndFlush(in.readSlice(in.readableBytes).retain())
+    if (in.isReadable) {
+      val bufSize: Int = if (in.readableBytes > clientHelloMTU) clientHelloMTU else in.readableBytes
+      remoteChannel.writeAndFlush(in.readSlice(bufSize).retain())
         .addListener { future: ChannelFuture =>
           if (future.isSuccess) remoteChannel.read()
           else future.channel().close()
         }
+      writeToHttps(in, remoteChannel)
     }
   }
 
