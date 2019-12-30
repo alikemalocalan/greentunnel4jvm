@@ -1,9 +1,10 @@
 package com.github.alikemalocalan.tunnel
 
 import io.netty.bootstrap.ServerBootstrap
-import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.channel.{ChannelInitializer, EventLoopGroup}
 import io.netty.handler.logging.{LogLevel, LoggingHandler}
 import org.slf4j.LoggerFactory
 
@@ -26,7 +27,14 @@ object HttpProxyServer extends App with Config {
           .group(bossGroup, workerGroup)
           .channel(classOf[NioServerSocketChannel])
           .handler(new LoggingHandler(LogLevel.INFO))
-          .childHandler(new HttpProxyChannelInitializer())
+          .childHandler(new ChannelInitializer[SocketChannel]() {
+            override def initChannel(ch: SocketChannel): Unit = {
+              ch.pipeline().addLast(
+                new LoggingHandler(LogLevel.INFO),
+                new HttpProxyClientHandler()
+              )
+            }
+          })
           .bind(port)
           .sync()
           .channel()
