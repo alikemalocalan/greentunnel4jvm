@@ -42,7 +42,7 @@ data class HttpRequest(
         method,
         getPath(),
         protocolVersion
-    ) + headersAsString() + "\r\n" + payload.let { }
+    ) + headersAsString() + "\r\n" + payload.getOrElse { "" }
 
     fun toStringForHTTPS(): String = String.format("CONNECT %s:%s %s\r\n", host(), port, protocolVersion)
 

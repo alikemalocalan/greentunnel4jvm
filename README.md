@@ -12,7 +12,7 @@ For use :
 <dependency>
   <groupId>com.github.alikemalocalan</groupId>
   <artifactId>greentunnel4jvm</artifactId>
-  <version>1.2-snapshot</version>
+  <version>1.3-snapshot</version>
 </dependency>
 ```
 
