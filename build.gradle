@@ -1,7 +1,17 @@
-
 plugins {
     id 'java'
+    id "application"
     id 'org.jetbrains.kotlin.jvm' version '1.3.61'
+}
+
+apply plugin: "java"
+
+ext {
+    javaMainClass = "com.github.alikemalocalan.greentunnel.greentunnel4jvm.HttpProxyServer"
+}
+
+application {
+    mainClassName = javaMainClass
 }
 
 group 'com.github.alikemalocalan.greentunnel'
