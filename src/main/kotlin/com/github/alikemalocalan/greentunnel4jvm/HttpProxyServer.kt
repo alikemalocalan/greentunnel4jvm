@@ -18,14 +18,13 @@ import java.util.logging.Logger
 
 object HttpProxyServer {
     val logger = InternalLoggerFactory.getInstance(this::class.java)
+    val loggerFactory = LoggingHandler(LogLevel.ERROR)
 
     val port = 8080
 
     val threadCount = 10
 
-    fun start() {
-        val loggerFactory = LoggingHandler(io.netty.handler.logging.LoggingHandler::class.java, LogLevel.ERROR)
-
+    fun newProxyService(): Thread =
         Thread { ->
             logger.info(
                 "HttpProxyServer started on port: {}",
@@ -56,15 +55,13 @@ object HttpProxyServer {
             }.mapLeft { ex ->
                 logger.error("shit happens", ex)
             }
-        }.start()
-    }
+        }
 
     @JvmStatic
     fun main(args: Array<String>) {
-        start()
+        newProxyService().start()
 
         Logger.getLogger("io.netty").level = Level.OFF
-        logger.error("alikemal :::  ${System.getProperty("java.vm.name")}")
     }
 
 }
