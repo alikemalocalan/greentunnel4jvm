@@ -1,4 +1,4 @@
-package com.github.alikemalocalan.greentunnel.greentunnel4jvm
+package com.github.alikemalocalan.greentunnel4jvm
 
 import arrow.core.Either
 import arrow.core.extensions.fx

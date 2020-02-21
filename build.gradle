@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id "application"
+    id 'maven-publish'
     id 'org.jetbrains.kotlin.jvm' version '1.3.61'
 }
 
@@ -14,13 +15,51 @@ application {
     mainClassName = javaMainClass
 }
 
-group 'com.github.alikemalocalan.greentunnel'
+group 'com.github.alikemalocalan'
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId 'com.github.alikemalocalan'
+            artifactId 'greentunnel4jvm'
+            version "$version"
+
+            from components.java
+
+            pom {
+                name = 'greentunnel4jvm'
+                description = 'Green Tunnel Alternative for JVM Languages'
+                url = 'https://github.com/alikemalocalan/greentunnel4jvm'
+                licenses {
+                    license {
+                        name = 'The MIT License (MIT)'
+                        url = 'https://mit-license.org/'
+                        distribution = 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'alikemalocalan'
+                        name = 'Ali Kemal Öcalan'
+                        email = 'alikemalocalan@gmail.com'
+                        roles = ['owner', 'developer']
+                    }
+                }
+                scm {
+                    url = 'https://github.com/alikemalocalan/greentunnel4jvm'
+                    connection = 'scm:git:https://github.com/alikemalocalan/greentunnel4jvm.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/alikemalocalan/greentunnel4jvm.git'
+                }
+            }
+        }
+    }
 }
 
 dependencies {
