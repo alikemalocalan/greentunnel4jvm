@@ -20,16 +20,9 @@ object HttpProxyServer {
     val logger = InternalLoggerFactory.getInstance(this::class.java)
     val loggerFactory = LoggingHandler(LogLevel.ERROR)
 
-    val port = 8080
-
-    val threadCount = 10
-
-    fun newProxyService(): Thread =
+    fun newProxyService(port: Int = 8080, threadCount: Int = 10): Thread =
         Thread { ->
-            logger.info(
-                "HttpProxyServer started on port: {}",
-                port
-            )
+            logger.info("HttpProxyServer started on port: {}", port)
             val bossGroup = NioEventLoopGroup(threadCount)
             val workerGroup = NioEventLoopGroup(1)
 
