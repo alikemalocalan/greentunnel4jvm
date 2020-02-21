@@ -27,7 +27,10 @@ lazy val root = (project in file(".")).
 
       "org.slf4j" % "slf4j-api" % "1.7.25" % Compile,
       "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
-      "org.scalatest" %% "scalatest" % "3.1.0" % Test
+      "org.scalatest" %% "scalatest" % "3.1.0" % Test,
+
+      "com.athaydes.rawhttp" % "rawhttp-core" % "2.2.1",
+      "commons-io" % "commons-io" % "2.6"
     )
   )
 

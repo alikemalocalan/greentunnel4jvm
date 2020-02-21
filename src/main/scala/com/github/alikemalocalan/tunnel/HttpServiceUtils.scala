@@ -13,8 +13,13 @@ import scala.util.Try
 object HttpServiceUtils {
   val clientHelloMTU: Int = 100
 
-  def fromByteBuf(in: ByteBuf): HttpRequest = {
+  def fromByteBuf(in: ByteBuf): Option[HttpRequest] = {
     val chunky = HttpServiceUtils.readMainPart(in)
+    if(chunky.isEmpty) None
+    else Some(parseBeyteBuf(chunky,in))
+  }
+
+  def parseBeyteBuf(chunky:String,in:ByteBuf): HttpRequest ={
     val firstLine = chunky.split(" ")
     val method = firstLine(0)
     val host = firstLine(1).toLowerCase
@@ -59,7 +64,11 @@ object HttpServiceUtils {
       } else result
     }
 
-    readByteBuf(in.isReadable, None).get
+    readByteBuf(in.isReadable, None)
+      .getOrElse{
+      in.release()
+      ""
+    }
   }
 
   @scala.annotation.tailrec

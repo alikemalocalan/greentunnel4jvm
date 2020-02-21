@@ -25,11 +25,12 @@ class HttpProxyClientHandler extends ChannelInboundHandlerAdapter {
     } else {
       if (in.readableBytes() < 0) in.release
       else {
-        val request: HttpRequest = HttpServiceUtils.fromByteBuf(in)
-        logger.info(s"${System.currentTimeMillis}| ${request.toString}")
-        clientChannel.config.setAutoRead(false) // disable AutoRead until remote connection is ready
-        remoteChannel = sendRequestWithRemoteChannel(ctx, clientChannel, request, in)
-        isFirstRequest = false
+        HttpServiceUtils.fromByteBuf(in).foreach{ request =>
+          logger.info(s"${System.currentTimeMillis}| ${request.toString}")
+          clientChannel.config.setAutoRead(false) // disable AutoRead until remote connection is ready
+          remoteChannel = sendRequestWithRemoteChannel(ctx, clientChannel, request, in)
+          isFirstRequest = false
+        }
       }
     }
   }
