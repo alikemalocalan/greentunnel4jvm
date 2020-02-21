@@ -1,4 +1,4 @@
-Green Tunnel Scala Lang Alternative For JVM Developer 
+Green Tunnel Alternative For JVM Developer 
 
 Green Tunnel is an anti-censorship utility designed to bypass DPI system that are put in place by various ISPs to block access to certain websites.
 
