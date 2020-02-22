@@ -2,7 +2,6 @@ package com.github.alikemalocalan.greentunnel4jvm
 
 import arrow.core.Either
 import arrow.core.extensions.fx
-import com.github.alikemal.greentunnelmobil.tunnel.HttpProxyClientHandler
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
@@ -20,7 +19,7 @@ object HttpProxyServer {
     val logger = InternalLoggerFactory.getInstance(this::class.java)
     val loggerFactory = LoggingHandler(LogLevel.ERROR)
 
-    fun newProxyService(port: Int = 8080, threadCount: Int = 10): Thread =
+    fun newProxyService(port: Int = 8080, threadCount: Int = 50): Thread =
         Thread { ->
             logger.info("HttpProxyServer started on port: {}", port)
             val bossGroup = NioEventLoopGroup(threadCount)

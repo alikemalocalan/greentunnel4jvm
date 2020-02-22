@@ -1,8 +1,8 @@
-package com.github.alikemal.greentunnelmobil.tunnel.utils
+package com.github.alikemalocalan.greentunnel4jvm.utils
 
 import arrow.core.*
 import arrow.core.extensions.fx
-import com.github.alikemal.greentunnelmobil.tunnel.models.HttpRequest
+import com.github.alikemalocalan.greentunnel4jvm.models.HttpRequest
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
@@ -14,7 +14,7 @@ import java.net.URI
 import java.nio.charset.Charset
 
 object HttpServiceUtils {
-    val clientHelloMTU: Int = 100
+    val clientHelloMTU: Int = 128
 
     fun readMainPart(buf: ByteBuf): String {
         val lineBuf = StringBuffer()

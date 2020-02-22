@@ -1,4 +1,4 @@
-package com.github.alikemal.greentunnelmobil.tunnel.models
+package com.github.alikemalocalan.greentunnel4jvm.models
 
 import arrow.core.None
 import arrow.core.Option

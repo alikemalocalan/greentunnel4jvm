@@ -1,8 +1,9 @@
-package com.github.alikemal.greentunnelmobil.tunnel
+package com.github.alikemalocalan.greentunnel4jvm
 
-import com.github.alikemal.greentunnelmobil.tunnel.models.HttpRequest
-import com.github.alikemal.greentunnelmobil.tunnel.utils.DNSOverHttps
-import com.github.alikemal.greentunnelmobil.tunnel.utils.HttpServiceUtils
+
+import com.github.alikemalocalan.greentunnel4jvm.models.HttpRequest
+import com.github.alikemalocalan.greentunnel4jvm.utils.DNSOverHttps
+import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
 import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled

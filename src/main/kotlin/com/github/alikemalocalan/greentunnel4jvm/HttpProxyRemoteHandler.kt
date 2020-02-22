@@ -1,4 +1,4 @@
-package com.github.alikemal.greentunnelmobil.tunnel
+package com.github.alikemalocalan.greentunnel4jvm
 
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel

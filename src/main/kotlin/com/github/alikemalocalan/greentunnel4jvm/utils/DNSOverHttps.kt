@@ -1,4 +1,4 @@
-package com.github.alikemal.greentunnelmobil.tunnel.utils
+package com.github.alikemalocalan.greentunnel4jvm.utils
 
 import com.google.gson.Gson
 import okhttp3.OkHttpClient
