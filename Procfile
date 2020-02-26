@@ -1,0 +1,1 @@
+web: java -Dserver.port=$PORT $JAVA_OPTS -jar build/libs/greentunnel4jvm-1.4-SNAPSHOT.jar
