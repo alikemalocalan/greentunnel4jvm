@@ -3,6 +3,7 @@ buildscript {
     version '1.4-SNAPSHOT'
     ext {
         javaMainClass = "com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer"
+        mainClassName = "com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer"
         kotlin_version = '1.3.61'
     }
 
@@ -18,7 +19,8 @@ buildscript {
 }
 
 plugins {
-    id 'java'
+    id "java"
+    id 'maven'
     id 'java-library'
     id "application"
     id 'maven-publish'
@@ -40,9 +42,6 @@ allprojects {
 
     }
 }
-
-apply plugin: "java"
-apply plugin: 'maven'
 
 application {
     mainClassName = javaMainClass
@@ -122,13 +121,9 @@ jar {
     manifest {
         attributes "Main-Class": "com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer"
     }
-
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
 }
 
-task stage(dependsOn: ['build', 'clean'])
+task stage(dependsOn: ['build', 'clean', 'installDist'])
 build.mustRunAfter clean
 
 task copyToLib(type: Copy) {

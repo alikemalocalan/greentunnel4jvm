@@ -19,6 +19,8 @@ object HttpProxyServer {
     val logger = InternalLoggerFactory.getInstance(this::class.java)
     val loggerFactory = LoggingHandler(LogLevel.WARN)
 
+    val probs = System.getProperties()
+
     @JvmStatic
     fun newProxyService(port: Int = 8080, threadCount: Int = 50): Thread =
         Thread { ->
@@ -52,7 +54,10 @@ object HttpProxyServer {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        newProxyService().start()
+        val port: Int = probs["proxy.port"].toString().toInt()
+
+        logger.error("Server start on : $port")
+        newProxyService(port = port).start()
 
         Logger.getLogger("io.netty").level = Level.OFF
     }
