@@ -17,8 +17,9 @@ import java.util.logging.Logger
 
 object HttpProxyServer {
     val logger = InternalLoggerFactory.getInstance(this::class.java)
-    val loggerFactory = LoggingHandler(LogLevel.ERROR)
+    val loggerFactory = LoggingHandler(LogLevel.WARN)
 
+    @JvmStatic
     fun newProxyService(port: Int = 8080, threadCount: Int = 50): Thread =
         Thread { ->
             logger.info("HttpProxyServer started on port: {}", port)

@@ -5,7 +5,7 @@ import arrow.core.Option
 import arrow.core.getOrElse
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
-import io.netty.handler.codec.http.HttpHeaders
+import okio.internal.commonAsUtf8ToByteArray
 import java.net.URI
 
 data class HttpRequest(
@@ -14,23 +14,20 @@ data class HttpRequest(
     val protocolVersion: String,
     val port: Int,
     val isHttps: Boolean,
-    val headers: Option<HttpHeaders> = None,
+    val headers: Option<List<Pair<String, String>>> = None,
     val payload: Option<String> = None
 ) {
 
-    fun headersAsString(): String {
-        val builder = StringBuilder("")
-
-        return headers.map { headersNonNull ->
-            headersNonNull.forEach { header ->
-                builder.append(String.format("%s: %s\r\n", header.key, header.value.trim()))
-            }
-            builder.toString()
+    private fun headersAsString(): String =
+        headers.map { headersNonNull ->
+            headersNonNull.reversed()
+                .filterNot { h -> h.first == "Client-IP" || h.second == "X-Forwarded-For" }
+                .joinToString(separator = "\r\n", postfix = "\r\n") { header ->
+                    String.format("%s: %s", header.first, header.second.trim())
+                }
         }.getOrElse { "" }
-    }
 
-
-    fun getPath(): String =
+    private fun getPath(): String =
         if (uri.path.isNullOrBlank()) "/"
         else uri.path
 
@@ -46,5 +43,7 @@ data class HttpRequest(
 
     fun toStringForHTTPS(): String = String.format("CONNECT %s:%s %s\r\n", host(), port, protocolVersion)
 
-    fun toByteBuf(): ByteBuf = if (isHttps) Unpooled.EMPTY_BUFFER else Unpooled.wrappedBuffer(toString().toByteArray())
+    fun toByteBuf(): ByteBuf =
+        if (isHttps) Unpooled.EMPTY_BUFFER
+        else Unpooled.wrappedBuffer(toString().commonAsUtf8ToByteArray())
 }

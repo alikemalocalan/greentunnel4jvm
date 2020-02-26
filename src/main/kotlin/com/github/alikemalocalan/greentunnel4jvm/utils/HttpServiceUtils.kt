@@ -8,15 +8,14 @@ import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelFutureListener
-import io.netty.handler.codec.http.DefaultHttpHeaders
 import io.netty.util.concurrent.GenericFutureListener
 import java.net.URI
 import java.nio.charset.Charset
 
 object HttpServiceUtils {
-    val clientHelloMTU: Int = 128
+    private const val clientHelloMTU: Int = 64
 
-    fun readMainPart(buf: ByteBuf): String {
+    private fun readMainPart(buf: ByteBuf): String {
         val lineBuf = StringBuffer()
 
         fun readByteBuf(isReadable: Boolean, result: Option<String>): Option<String> {
@@ -41,10 +40,10 @@ object HttpServiceUtils {
     fun fromByteBuf(buf: ByteBuf): Option<HttpRequest> {
         val chunky = readMainPart(buf)
         return if (chunky.isEmpty()) None
-        else Some(parseBeyteBuf(chunky, buf))
+        else Some(parseByteBuf(chunky, buf))
     }
 
-    fun parseBeyteBuf(chunky: String, buf: ByteBuf): HttpRequest {
+    private fun parseByteBuf(chunky: String, buf: ByteBuf): HttpRequest {
         val firstLine = chunky.split(" ")
         val method = firstLine[0]
         val host = firstLine[1].toLowerCase()
@@ -61,14 +60,15 @@ object HttpServiceUtils {
             val mainPart = reqAsString.split("\r\n\r\n") // until payload
             val headerLines = mainPart.first().split("\r\n") // for headers
 
-            val payLoad = if (mainPart.size == 2) mainPart.get(1) else ""
+            val payLoad = if (mainPart.size == 2) mainPart[1] else ""
 
-            val headers = DefaultHttpHeaders()
-            for (headerLine in headerLines) {
-                val arr = headerLine.split(":")
-                headers.add(arr[0], arr[1])
-            }
-            headers.remove("Proxy-Connection")
+            val headers: List<Pair<String, String>> = headerLines
+                .map { h ->
+                    val arr = h.split(":")
+                    (arr[0] to arr[1])
+                }.toList().distinct()
+                .filterNot { k -> k.first == "Proxy-Connection" || k.first == "Via" }
+
             return HttpRequest(
                 method,
                 uri,

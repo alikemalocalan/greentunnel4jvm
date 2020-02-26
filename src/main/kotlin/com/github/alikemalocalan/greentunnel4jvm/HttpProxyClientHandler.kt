@@ -1,51 +1,56 @@
 package com.github.alikemalocalan.greentunnel4jvm
 
 
+import arrow.core.None
+import arrow.core.Option
+import arrow.core.Some
 import com.github.alikemalocalan.greentunnel4jvm.models.HttpRequest
 import com.github.alikemalocalan.greentunnel4jvm.utils.DNSOverHttps
 import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
 import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
-import io.netty.channel.*
+import io.netty.channel.Channel
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
+import io.netty.channel.ChannelOption
 import io.netty.util.internal.logging.InternalLoggerFactory
+import okio.internal.commonAsUtf8ToByteArray
 
 
 class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
-    val logger = InternalLoggerFactory.getInstance(this::class.java)
-    var remoteChannel: Channel? = null
-    var isFirstRequest: Boolean = true
+    private val logger = InternalLoggerFactory.getInstance(this::class.java)
+    private var remoteChannel: Option<Channel> = None
 
-    @ExperimentalStdlibApi
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         val clientChannel = ctx.channel()
         val buf: ByteBuf = msg as ByteBuf
 
-        if (!isFirstRequest) { // just forward and taking Response
-            HttpServiceUtils.writeToHttps(buf, remoteChannel!!)
-            buf.release()
-        } else {
+        if (remoteChannel.isEmpty()) { // it's first request
             if (buf.readableBytes() < 0) buf.release()
             else
                 HttpServiceUtils.fromByteBuf(buf).map { request ->
-                    logger.info("${System.currentTimeMillis()}| $request")
+                    logger.error("${System.currentTimeMillis()}| $request")
                     clientChannel.config().isAutoRead = false // disable AutoRead until remote connection is ready
-                    remoteChannel = sendRequestWithRemoteChannel(ctx, clientChannel, request, buf)
-                    isFirstRequest = false
+                    remoteChannel = Some(sendRequestWithRemoteChannel(ctx, clientChannel, request, buf))
                 }
-        }
+        } else // just forward and taking Response
+            remoteChannel.map { r ->
+                HttpServiceUtils.writeToHttps(buf, r)
+                buf.release()
+            }
 
     }
 
-    @ExperimentalStdlibApi
     private fun sendRequestWithRemoteChannel(
         ctx: ChannelHandlerContext,
         clientChannel: Channel,
         request: HttpRequest,
         postBuf: ByteBuf
     ): Channel {
-        // if https, respond 200 to create com.github.alikemalocalan.tunnel
-        if (request.isHttps) clientChannel.writeAndFlush(Unpooled.wrappedBuffer("HTTP/1.1 200 Connection Established\r\n\r\n".encodeToByteArray()))
+
+        if (request.isHttps) // if https,return respond 200
+            clientChannel.writeAndFlush(Unpooled.wrappedBuffer("HTTP/1.1 200 Connection Established\r\n\r\n".commonAsUtf8ToByteArray()))
 
         val remoteFuture = Bootstrap()
             .group(clientChannel.eventLoop()) // use the same EventLoop
@@ -60,9 +65,9 @@ class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
         remoteFuture.addListener { future ->
             if (future.isSuccess) {
                 clientChannel.config().isAutoRead = true // connection is ready, enable AutoRead
-                if (!request.isHttps)
-                    remoteFuture.channel().writeAndFlush(request.toByteBuf())
-                else HttpServiceUtils.writeToHttps(request.toByteBuf(), remoteFuture.channel())
+                if (request.isHttps)
+                    HttpServiceUtils.writeToHttps(request.toByteBuf(), remoteFuture.channel())
+                else remoteFuture.channel().writeAndFlush(request.toByteBuf())
                 ctx.channel().read()
             } else {
                 postBuf.release()
@@ -77,12 +82,5 @@ class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
         logger.error("Shit happen at Server Connection", cause)
         ctx.close()
     }
-
-    private fun flushAndClose(ch: Channel?) {
-        if (ch != null && ch.isActive) {
-            ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
-        }
-    }
-
 
 }
