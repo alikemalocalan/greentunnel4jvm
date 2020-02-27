@@ -1,0 +1,5 @@
+{
+  "name": "greentunnel4jvm",
+  "description": "An example app.json for heroku-docker",
+  "image": "heroku/java"
+}
