@@ -1,6 +1,0 @@
-worker:
-  build: .
-  command: 'bash -c ''java -Dproxy.port=$PORT $JAVA_OPTS -jar build/libs/greentunnel4jvm-1.4-SNAPSHOT.jar'''
-  working_dir: /app/user
-  environment:
-shell: null
