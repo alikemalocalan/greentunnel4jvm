@@ -57,7 +57,7 @@ object HttpProxyServer {
         val port: Int = probs["proxy.port"].toString().toInt()
 
         logger.error("Server start on : $port")
-        newProxyService(port = port).start()
+        newProxyService(port = 8080).start()
 
         Logger.getLogger("io.netty").level = Level.OFF
     }
