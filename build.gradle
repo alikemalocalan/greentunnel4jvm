@@ -119,16 +119,19 @@ compileTestKotlin {
 }
 jar {
     manifest {
-        attributes "Main-Class": "com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer"
+        attributes 'Main-Class': "com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer"
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
-task stage(dependsOn: ['build', 'clean', 'installDist'])
+task stage(dependsOn: ['build', 'clean'])
 build.mustRunAfter clean
 
 task copyToLib(type: Copy) {
     into "$buildDir/libs"
-    from(configurations.compile)
+    from configurations.compile
 }
 
 stage.dependsOn(copyToLib)

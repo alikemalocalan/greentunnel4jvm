@@ -1,1 +1,1 @@
-web: build/install/greentunnel4jvm/bin/greentunnel4jvm
+web: java -Dproxy.port=$PORT $JAVA_OPTS -jar build/libs/greentunnel4jvm-1.4-SNAPSHOT.jar

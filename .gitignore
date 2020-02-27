@@ -49,9 +49,6 @@ Temporary Items
 # Ignore Gradle GUI config
 gradle-app.setting
 
-# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
-!gradle-wrapper.jar
-
 # Cache of project
 .gradletasknamecache
 
@@ -202,3 +199,14 @@ javadoc/
 # lock file, a part of Oracle Credential Store Framework
 cwallet.sso.lck
 !/.idea/
+.idea/.gitignore
+.idea/codeStyles/
+.idea/compiler.xml
+.idea/jarRepositories.xml
+.idea/misc.xml
+.idea/modules/
+.idea/sbt.xml
+.idea/vcs.xml
+java_pid57070.hprof
+src/main/java/
+src/test/
