@@ -102,13 +102,12 @@ publishing {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation 'io.netty:netty-handler-proxy:4.1.45.Final'
-    implementation 'commons-io:commons-io:2.6'
-    implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'com.squareup.okhttp3:okhttp:4.4.0'
+    implementation 'io.netty:netty-handler-proxy:4.1.50.Final'
+    implementation 'com.squareup.okhttp3:okhttp:4.7.2'
+    implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.7.2'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.7.2'
     implementation 'ch.qos.logback:logback-classic:1.2.3'
-    implementation "io.arrow-kt:arrow-core:0.10.4"
-    implementation "io.arrow-kt:arrow-syntax:0.10.4"
+    implementation "io.arrow-kt:arrow-syntax:0.10.5"
 }
 
 compileKotlin {
