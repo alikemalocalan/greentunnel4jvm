@@ -30,7 +30,7 @@ class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
             if (buf.readableBytes() < 0) buf.release()
             else
                 HttpServiceUtils.fromByteBuf(buf).map { request ->
-                    logger.error("${System.currentTimeMillis()}| $request")
+                    logger.info("${System.currentTimeMillis()}| $request")
                     clientChannel.config().isAutoRead = false // disable AutoRead until remote connection is ready
                     remoteChannel = Some(sendRequestWithRemoteChannel(ctx, clientChannel, request, buf))
                 }
