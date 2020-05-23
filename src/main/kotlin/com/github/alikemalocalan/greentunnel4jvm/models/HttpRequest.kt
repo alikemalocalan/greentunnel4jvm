@@ -34,7 +34,7 @@ data class HttpRequest(
     fun host(): String = uri.host
 
     override fun toString(): String = String.format(
-        "%s %s %s\r\n",
+        "%s  %s  %s\r\n",
         method,
         getPath(),
         protocolVersion
