@@ -65,14 +65,62 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId 'com.github.alikemalocalan'
+            artifactId 'greentunnel4jvm'
+            version "$version"
+
+            from components.java
+
+            pom {
+                name = 'greentunnel4jvm'
+                description = 'Green Tunnel Alternative for JVM Languages'
+                url = 'https://github.com/alikemalocalan/greentunnel4jvm'
+                licenses {
+                    license {
+                        name = 'The MIT License (MIT)'
+                        url = 'https://mit-license.org/'
+                        distribution = 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'alikemalocalan'
+                        name = 'Ali Kemal Öcalan'
+                        email = 'alikemalocalan@gmail.com'
+                        roles = ['owner', 'developer']
+                    }
+                }
+                scm {
+                    url = 'https://github.com/alikemalocalan/greentunnel4jvm'
+                    connection = 'scm:git:https://github.com/alikemalocalan/greentunnel4jvm.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/alikemalocalan/greentunnel4jvm.git'
+                }
+            }
+        }
+    }
+    repositories {
+        jcenter()
+        mavenLocal()
+        maven { url 'https://jitpack.io' }
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/alikemalocalan/greentunnel4jvm")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+
 tasks {
     jar {
-        enabled = false
         manifest {
             attributes 'Main-Class': "com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer"
-        }
-        from {
-            configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
         }
     }
     pom {
@@ -87,56 +135,4 @@ tasks {
             }
         }
     }.writeTo("pom.xml")
-
-    publishing {
-        publications {
-            maven(MavenPublication) {
-                groupId 'com.github.alikemalocalan'
-                artifactId 'greentunnel4jvm'
-                version "$version"
-
-                from components.java
-
-                pom {
-                    name = 'greentunnel4jvm'
-                    description = 'Green Tunnel Alternative for JVM Languages'
-                    url = 'https://github.com/alikemalocalan/greentunnel4jvm'
-                    licenses {
-                        license {
-                            name = 'The MIT License (MIT)'
-                            url = 'https://mit-license.org/'
-                            distribution = 'repo'
-                        }
-                    }
-                    developers {
-                        developer {
-                            id = 'alikemalocalan'
-                            name = 'Ali Kemal Öcalan'
-                            email = 'alikemalocalan@gmail.com'
-                            roles = ['owner', 'developer']
-                        }
-                    }
-                    scm {
-                        url = 'https://github.com/alikemalocalan/greentunnel4jvm'
-                        connection = 'scm:git:https://github.com/alikemalocalan/greentunnel4jvm.git'
-                        developerConnection = 'scm:git:ssh://git@github.com/alikemalocalan/greentunnel4jvm.git'
-                    }
-                }
-            }
-        }
-        repositories {
-            jcenter()
-            mavenLocal()
-            maven { url 'https://jitpack.io' }
-            maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/alikemalocalan/greentunnel4jvm")
-                credentials {
-                    username = System.getenv("GITHUB_ACTOR")
-                    password = System.getenv("GITHUB_TOKEN")
-                }
-            }
-        }
-    }
-
 }
