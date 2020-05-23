@@ -1,6 +1,6 @@
 buildscript {
     group 'com.github.alikemalocalan'
-    version '1.4-SNAPSHOT'
+    version '1.6-SNAPSHOT'
     ext {
         javaMainClass = "com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer"
         mainClassName = "com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer"
@@ -29,7 +29,7 @@ plugins {
 
 allprojects {
     group = 'com.github.alikemalocalan'
-    version = '1.4-SNAPSHOT'
+    version = '1.6-SNAPSHOT'
     repositories {
         google()
         jcenter()
