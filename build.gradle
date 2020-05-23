@@ -1,11 +1,4 @@
 buildscript {
-    group 'com.github.alikemalocalan'
-    version '1.7-SNAPSHOT'
-    ext {
-        javaMainClass = "com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer"
-        mainClassName = "com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer"
-        kotlin_version = '1.3.61'
-    }
 
     repositories {
         google()
@@ -18,18 +11,21 @@ buildscript {
     }
 }
 
-plugins {
-    id "java"
-    id 'maven'
-    id 'java-library'
-    id "application"
-    id 'maven-publish'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.61'
-}
-
 allprojects {
-    group = 'com.github.alikemalocalan'
-    version = '1.7-SNAPSHOT'
+    group = projectGroup
+    version = projectVersion
+
+    apply plugin: 'java'
+    apply plugin: 'kotlin'
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
+    apply plugin: 'application'
+
+    sourceCompatibility = 1.8
+    compileKotlin.kotlinOptions.jvmTarget = "1.8"
+    compileTestKotlin.kotlinOptions.jvmTarget = "1.8"
+    compileJava.options.encoding = 'UTF-8'
+
     repositories {
         google()
         jcenter()
@@ -44,10 +40,8 @@ allprojects {
 }
 
 application {
-    mainClassName = javaMainClass
+    mainClassName = projectMainClassName
 }
-
-sourceCompatibility = 1.8
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
@@ -59,24 +53,17 @@ dependencies {
     implementation "io.arrow-kt:arrow-syntax:0.10.5"
 }
 
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId 'com.github.alikemalocalan'
-            artifactId 'greentunnel4jvm'
-            version "$version"
+            groupId projectGroup
+            artifactId rootProject.name
+            version projectVersion
 
             from components.java
 
             pom {
-                name = 'greentunnel4jvm'
+                name = rootProject.name
                 description = 'Green Tunnel Alternative for JVM Languages'
                 url = 'https://github.com/alikemalocalan/greentunnel4jvm'
                 licenses {
@@ -120,7 +107,7 @@ publishing {
 tasks {
     jar {
         manifest {
-            attributes 'Main-Class': "com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer"
+            attributes 'Main-Class': projectMainClassName
         }
     }
     pom {
