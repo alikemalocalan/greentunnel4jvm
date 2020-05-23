@@ -38,6 +38,7 @@ object DNSOverHttps {
         dns.lookup(address).first().hostAddress
 
 
+    @JvmStatic
     private fun buildDnsClient(bootstrapClient: OkHttpClient): DnsOverHttps {
         return DnsOverHttps.Builder().client(bootstrapClient)
             .url("https://1.1.1.1/dns-query".toHttpUrl())
@@ -47,6 +48,7 @@ object DNSOverHttps {
             .build()
     }
 
+    @JvmStatic
     private fun getByIp(host: String): InetAddress {
         return try {
             InetAddress.getByName(host)

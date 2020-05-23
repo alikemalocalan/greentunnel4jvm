@@ -21,7 +21,6 @@ data class HttpRequest(
     private fun headersAsString(): String =
         headers.map { headersNonNull ->
             headersNonNull.reversed()
-                .filterNot { h -> h.first == "Client-IP" || h.second == "X-Forwarded-For" }
                 .joinToString(separator = "\r\n", postfix = "\r\n") { header ->
                     String.format("%s: %s", header.first, header.second.trim())
                 }
@@ -40,8 +39,6 @@ data class HttpRequest(
         getPath(),
         protocolVersion
     ) + headersAsString() + "\r\n" + payload.getOrElse { "" }
-
-    fun toStringForHTTPS(): String = String.format("CONNECT %s:%s %s\r\n", host(), port, protocolVersion)
 
     fun toByteBuf(): ByteBuf =
         if (isHttps) Unpooled.EMPTY_BUFFER

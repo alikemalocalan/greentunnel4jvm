@@ -4,17 +4,17 @@ import arrow.core.*
 import arrow.core.extensions.fx
 import com.github.alikemalocalan.greentunnel4jvm.models.HttpRequest
 import io.netty.buffer.ByteBuf
-import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
-import io.netty.channel.ChannelFutureListener
 import io.netty.util.concurrent.GenericFutureListener
 import java.net.URI
-import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
+import java.util.*
 
 object HttpServiceUtils {
     private const val clientHelloMTU: Int = 64
 
+    @JvmStatic
     private fun readMainPart(buf: ByteBuf): String {
         val lineBuf = StringBuffer()
 
@@ -37,12 +37,14 @@ object HttpServiceUtils {
 
     }
 
+    @JvmStatic
     fun fromByteBuf(buf: ByteBuf): Option<HttpRequest> {
         val chunky = readMainPart(buf)
         return if (chunky.isEmpty()) None
         else Some(parseByteBuf(chunky, buf))
     }
 
+    @JvmStatic
     private fun parseByteBuf(chunky: String, buf: ByteBuf): HttpRequest {
         val firstLine = chunky.split(" ")
         val method = firstLine[0]
@@ -56,7 +58,7 @@ object HttpServiceUtils {
             val uri = if (host.startsWith("http://")) URI(host) else URI("http://$host")
             val port = Either.fx<Exception, Int> { uri.port }.toOption().filter { n -> n != -1 }.getOrElse { 80 }
 
-            val reqAsString: String = buf.asReadOnly().toString(Charset.defaultCharset())
+            val reqAsString: String = buf.asReadOnly().toString(StandardCharsets.UTF_8)
             val mainPart = reqAsString.split("\r\n\r\n") // until payload
             val headerLines = mainPart.first().split("\r\n") // for headers
 
@@ -66,8 +68,12 @@ object HttpServiceUtils {
                 .map { h ->
                     val arr = h.split(":")
                     (arr[0] to arr[1])
-                }.toList().distinct()
-                .filterNot { k -> k.first == "Proxy-Connection" || k.first == "Via" }
+                }
+                .distinct()
+                .filterNot { h -> h.first == "Client-IP" || h.second == "X-Forwarded-For" }
+                .filterNot { k -> k.first == "Via" }
+                .map(this::addKeepAliveHeaders)
+                .map(this::mixHostLetterCase)
 
             return HttpRequest(
                 method,
@@ -82,7 +88,8 @@ object HttpServiceUtils {
 
     }
 
-    fun writeToHttps(buf: ByteBuf, remoteChannel: Channel): Unit {
+    @JvmStatic
+    fun writeToHttps(buf: ByteBuf, remoteChannel: Channel) {
         if (buf.isReadable) {
             val bufSize: Int = if (buf.readableBytes() > clientHelloMTU) clientHelloMTU else buf.readableBytes()
             remoteChannel.writeAndFlush(buf.readSlice(bufSize).retain())
@@ -94,9 +101,26 @@ object HttpServiceUtils {
         }
     }
 
-
-    fun closeOnFlush(ch: Channel) {
-        if (ch.isActive) ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
+    /*
+   mix Host header case (test.com -> tEsT.cOm)
+    TODO: maybe it will be improve and more complex
+     */
+    @JvmStatic
+    fun makeUpperRandomChar(str: String): String {
+        val char = str.elementAt(Random().nextInt(str.length))
+        return str.replace(char, char.toUpperCase())
     }
+
+    @JvmStatic
+    private fun addKeepAliveHeaders(header: Pair<String, String>): Pair<String, String> =
+        if (header.first == "Proxy-Connection" || header.first == "Via")
+            "Connection" to "keep-alive"
+        else header
+
+    @JvmStatic
+    private fun mixHostLetterCase(header: Pair<String, String>): Pair<String, String> =
+        if (header.first.equals("host", true))
+            makeUpperRandomChar(header.first) to makeUpperRandomChar(header.second)
+        else header
 
 }

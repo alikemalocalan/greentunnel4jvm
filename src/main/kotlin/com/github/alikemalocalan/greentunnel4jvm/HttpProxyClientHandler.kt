@@ -55,10 +55,10 @@ class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
         val remoteFuture = Bootstrap()
             .group(clientChannel.eventLoop()) // use the same EventLoop
             .channel(ctx.channel()::class.java)
-            .option<Boolean>(ChannelOption.SINGLE_EVENTEXECUTOR_PER_GROUP, false)
-            .option<Boolean>(ChannelOption.TCP_NODELAY, true)
-            .option<Boolean>(ChannelOption.SO_KEEPALIVE, true)
-            .option<Boolean>(ChannelOption.AUTO_READ, true) // disable AutoRead until remote connection is ready
+            .option(ChannelOption.SINGLE_EVENTEXECUTOR_PER_GROUP, false)
+            .option(ChannelOption.TCP_NODELAY, true)
+            .option(ChannelOption.SO_KEEPALIVE, true)
+            .option(ChannelOption.AUTO_READ, true) // disable AutoRead until remote connection is ready
             .handler(HttpProxyRemoteHandler(ctx.channel()))
             .connect(DNSOverHttps.lookUp(request.host()), request.port)
 
