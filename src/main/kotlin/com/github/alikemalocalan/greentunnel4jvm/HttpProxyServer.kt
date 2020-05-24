@@ -1,7 +1,9 @@
 package com.github.alikemalocalan.greentunnel4jvm
 
 import arrow.core.Either
+import arrow.core.Option
 import arrow.core.extensions.fx
+import arrow.core.getOrElse
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
@@ -23,46 +25,52 @@ object HttpProxyServer {
     val probs = System.getProperties()
 
     @JvmStatic
-    fun newProxyService(socket: InetSocketAddress, threadCount: Int = 50): Thread =
-        Thread { ->
-            logger.debug("HttpProxyServer started on : ${socket.address}:${socket.port}")
-            val bossGroup = NioEventLoopGroup(threadCount)
-            val workerGroup = NioEventLoopGroup(1)
+    fun newProxyService(socket: InetSocketAddress, threadCount: Int = 2): Either<Exception, ChannelFuture> {
+        logger.debug("HttpProxyServer started on : ${socket.address}:${socket.port}")
+        val bossGroup = NioEventLoopGroup(threadCount)
+        val workerGroup = NioEventLoopGroup(threadCount)
 
-            Either.fx<Exception, ChannelFuture> {
-                ServerBootstrap()
-                    .group(bossGroup, workerGroup)
-                    .channel(NioServerSocketChannel::class.java)
-                    .handler(loggerFactory)
-                    .childHandler(object : ChannelInitializer<SocketChannel>() {
-                        override fun initChannel(ch: SocketChannel) {
-                            ch.pipeline().addLast(
-                                loggerFactory,
-                                HttpProxyClientHandler()
-                            )
-                        }
-                    })
-                    .bind(socket)
-                    .sync()
-                    .channel()
-                    .closeFuture()
-                    .sync()
-
-            }.mapLeft { ex ->
-                logger.error("shit happens", ex)
-            }
+        val server: Either<Exception, ChannelFuture> = Either.fx<Exception, ChannelFuture> {
+            ServerBootstrap()
+                .group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel::class.java)
+                .handler(loggerFactory)
+                .childHandler(object : ChannelInitializer<SocketChannel>() {
+                    override fun initChannel(ch: SocketChannel) {
+                        ch.pipeline().addLast(
+                            loggerFactory,
+                            HttpProxyClientHandler()
+                        )
+                    }
+                })
+                .bind(socket)
+                .sync()
+                .channel()
+                .closeFuture()
+                .sync()
         }
 
+        return server
+    }
+
     @JvmStatic
-    fun newProxyService(address: String = "127.0.0.1", port: Int = 8080, threadCount: Int = 50): Thread =
+    fun newProxyService(
+        address: String = "127.0.0.1",
+        port: Int = 8080,
+        threadCount: Int = 2
+    ): Either<Exception, ChannelFuture> =
         newProxyService(InetSocketAddress(address, port), threadCount)
+
 
     @JvmStatic
     fun main(args: Array<String>) {
         val port: Int = probs["proxy.port"].toString().toInt()
 
-        newProxyService(port = 8080).start()
+        newProxyService(port = Option(port).getOrElse { 8080 })
         Logger.getLogger("io.netty").level = Level.OFF
     }
+
+
+    fun stop(server: Either<Exception, ChannelFuture>) = server.map { x -> x.cancel(false) }
 
 }

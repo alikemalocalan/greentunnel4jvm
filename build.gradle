@@ -100,7 +100,6 @@ publishing {
             }
         }
         maven { url 'https://jitpack.io' }
-        jcenter()
     }
 }
 
