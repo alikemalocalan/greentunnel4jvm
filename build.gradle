@@ -90,9 +90,7 @@ publishing {
         }
     }
     repositories {
-        jcenter()
         mavenLocal()
-        maven { url 'https://jitpack.io' }
         maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/alikemalocalan/greentunnel4jvm")
@@ -101,6 +99,8 @@ publishing {
                 password = System.getenv("GITHUB_TOKEN")
             }
         }
+        maven { url 'https://jitpack.io' }
+        jcenter()
     }
 }
 
