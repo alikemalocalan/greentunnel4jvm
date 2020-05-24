@@ -11,6 +11,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.logging.LogLevel
 import io.netty.handler.logging.LoggingHandler
 import io.netty.util.internal.logging.InternalLoggerFactory
+import java.net.InetSocketAddress
 import java.util.logging.Level
 import java.util.logging.Logger
 
@@ -22,9 +23,9 @@ object HttpProxyServer {
     val probs = System.getProperties()
 
     @JvmStatic
-    fun newProxyService(port: Int = 8080, threadCount: Int = 50): Thread =
+    fun newProxyService(socket: InetSocketAddress, threadCount: Int = 50): Thread =
         Thread { ->
-            logger.info("HttpProxyServer started on port: {}", port)
+            logger.debug("HttpProxyServer started on : ${socket.address}:${socket.port}")
             val bossGroup = NioEventLoopGroup(threadCount)
             val workerGroup = NioEventLoopGroup(1)
 
@@ -41,7 +42,7 @@ object HttpProxyServer {
                             )
                         }
                     })
-                    .bind(port)
+                    .bind(socket)
                     .sync()
                     .channel()
                     .closeFuture()
@@ -53,12 +54,14 @@ object HttpProxyServer {
         }
 
     @JvmStatic
+    fun newProxyService(address: String = "127.0.0.1", port: Int = 8080, threadCount: Int = 50): Thread =
+        newProxyService(InetSocketAddress(address, port), threadCount)
+
+    @JvmStatic
     fun main(args: Array<String>) {
         val port: Int = probs["proxy.port"].toString().toInt()
 
-        logger.error("Server start on : $port")
         newProxyService(port = 8080).start()
-
         Logger.getLogger("io.netty").level = Level.OFF
     }
 
