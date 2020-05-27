@@ -45,12 +45,12 @@ application {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation 'io.netty:netty-handler-proxy:4.1.50.Final'
-    implementation 'com.squareup.okhttp3:okhttp:4.7.2'
-    implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.7.2'
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.7.2'
-    implementation 'ch.qos.logback:logback-classic:1.2.3'
-    implementation "io.arrow-kt:arrow-syntax:0.10.5"
+    compile 'io.netty:netty-handler-proxy:4.1.50.Final'
+    compile 'com.squareup.okhttp3:okhttp:4.7.2'
+    compile 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.7.2'
+    compile 'com.squareup.okhttp3:logging-interceptor:4.7.2'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
+    compile "io.arrow-kt:arrow-syntax:0.10.5"
 }
 
 publishing {
@@ -90,7 +90,7 @@ publishing {
         }
     }
     repositories {
-        mavenLocal()
+        mavenCentral()
         maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/alikemalocalan/greentunnel4jvm")
