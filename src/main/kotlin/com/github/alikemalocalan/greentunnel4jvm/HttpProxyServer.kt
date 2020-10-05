@@ -57,7 +57,7 @@ object HttpProxyServer {
     fun newProxyService(
         address: String = "127.0.0.1",
         port: Int = 8080,
-        threadCount: Int = 2
+        threadCount: Int = 10
     ): Either<Exception, ChannelFuture> =
         newProxyService(InetSocketAddress(address, port), threadCount)
 

@@ -11,6 +11,10 @@ buildscript {
     }
 }
 
+plugins {
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+}
+
 allprojects {
     group = projectGroup
     version = projectVersion
@@ -45,10 +49,10 @@ application {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    compile 'io.netty:netty-handler-proxy:4.1.50.Final'
-    compile 'com.squareup.okhttp3:okhttp:4.7.2'
-    compile 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.7.2'
-    compile 'com.squareup.okhttp3:logging-interceptor:4.7.2'
+    compile 'io.netty:netty-handler-proxy:4.1.52.Final'
+    compile 'com.squareup.okhttp3:okhttp:4.9.0'
+    compile 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.9.0'
+    compile 'com.squareup.okhttp3:logging-interceptor:4.9.0'
     compile 'ch.qos.logback:logback-classic:1.2.3'
     compile "io.arrow-kt:arrow-syntax:0.10.5"
 }
