@@ -12,3 +12,4 @@ COPY --from=BUILD /src/build/libs/greentunnel4jvm-1.11-SNAPSHOT-all.jar /bin/run
 WORKDIR /bin/runner
 
 CMD ["java","-jar","run.jar"]
+EXPOSE 8080
