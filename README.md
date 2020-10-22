@@ -10,13 +10,26 @@ About More : [GreenTunnel](https://github.com/SadeghHayeri/GreenTunnel)
 
 For use :
 
-```xml
-<dependency>
-  <groupId>com.github.alikemalocalan</groupId>
-  <artifactId>greentunnel4jvm</artifactId>
-  <version>1.4-snapshot</version>
-</dependency>
+Add it in your root build.gradle at the end of repositories:
+
+
 ```
+	allprojects {
+		repositories {
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+
+Add the dependency:
+
+
+```
+dependencies {
+	        implementation 'com.github.alikemalocalan:greentunnel4jvm:1.11-SNAPSHOT'
+        }
+```
+
 
 and then:
 
@@ -27,12 +40,12 @@ mvn install
 code:
 
 ```kotlin
-HttpProxyServer.newProxyService().start()
+HttpProxyServer.newProxyService()
 
 ```
 
 
-Thanks for motivation [0x01h](https://github.com/0x01h)
+Thanks for motivation [0x01h](https://github.com/0x01h) 
 
 
 ## License
