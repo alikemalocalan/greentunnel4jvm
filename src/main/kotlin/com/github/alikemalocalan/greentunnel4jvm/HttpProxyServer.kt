@@ -1,7 +1,5 @@
 package com.github.alikemalocalan.greentunnel4jvm
 
-import arrow.core.Either
-import arrow.core.extensions.fx
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
@@ -23,32 +21,28 @@ object HttpProxyServer {
     val probs = System.getProperties()
 
     @JvmStatic
-    fun newProxyService(socket: InetSocketAddress, threadCount: Int = 2): Either<Exception, ChannelFuture> {
+    fun newProxyService(socket: InetSocketAddress, threadCount: Int = 2): ChannelFuture {
         logger.debug("HttpProxyServer started on : ${socket.address}:${socket.port}")
         val bossGroup = NioEventLoopGroup(threadCount)
         val workerGroup = NioEventLoopGroup(threadCount)
 
-        val server: Either<Exception, ChannelFuture> = Either.fx<Exception, ChannelFuture> {
-            ServerBootstrap()
-                .group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel::class.java)
-                .handler(loggerFactory)
-                .childHandler(object : ChannelInitializer<SocketChannel>() {
-                    override fun initChannel(ch: SocketChannel) {
-                        ch.pipeline().addLast(
-                            loggerFactory,
-                            HttpProxyClientHandler()
-                        )
-                    }
-                })
-                .bind(socket)
-                .sync()
-                .channel()
-                .closeFuture()
-                .sync()
-        }
-
-        return server
+        return ServerBootstrap()
+            .group(bossGroup, workerGroup)
+            .channel(NioServerSocketChannel::class.java)
+            .handler(loggerFactory)
+            .childHandler(object : ChannelInitializer<SocketChannel>() {
+                override fun initChannel(ch: SocketChannel) {
+                    ch.pipeline().addLast(
+                        loggerFactory,
+                        HttpProxyClientHandler()
+                    )
+                }
+            })
+            .bind(socket)
+            .sync()
+            .channel()
+            .closeFuture()
+            .sync()
     }
 
     @JvmStatic
@@ -56,7 +50,7 @@ object HttpProxyServer {
         address: String = "127.0.0.1",
         port: Int = 8080,
         threadCount: Int = 10
-    ): Either<Exception, ChannelFuture> =
+    ): ChannelFuture =
         newProxyService(InetSocketAddress(address, port), threadCount)
 
 
@@ -64,13 +58,14 @@ object HttpProxyServer {
     fun main(args: Array<String>) {
         val port = probs["proxy.port"]
 
-        if (port != null)
+        if (port != null) {
+            logger.error("Port :$port")
             newProxyService(port = port.toString().toInt())
-        else newProxyService(port = 8080)
+        } else newProxyService()
         Logger.getLogger("io.netty").level = Level.OFF
     }
 
 
-    fun stop(server: Either<Exception, ChannelFuture>) = server.map { x -> x.cancel(false) }
+    fun stop(server: ChannelFuture): Boolean = server.cancel(false)
 
 }

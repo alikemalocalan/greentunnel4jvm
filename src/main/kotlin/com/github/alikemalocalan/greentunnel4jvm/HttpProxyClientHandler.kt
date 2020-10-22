@@ -60,7 +60,7 @@ class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
             .option(ChannelOption.SO_KEEPALIVE, true)
             .option(ChannelOption.AUTO_READ, true) // disable AutoRead until remote connection is ready
             .handler(HttpProxyRemoteHandler(ctx.channel()))
-            .connect(DNSOverHttps.lookUp(request.host()), request.port)
+            .connect(DNSOverHttps.lookUp(request.host()), request.port) //TODO handle Error in here
 
         remoteFuture.addListener { future ->
             if (future.isSuccess) {

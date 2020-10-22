@@ -52,11 +52,11 @@ object HttpServiceUtils {
         val protocolVersion = firstLine[2]
         return if (method.toUpperCase().startsWith("CONNECT")) { // Https request
             val uri = if (host.startsWith("https://")) URI(host) else URI("https://$host")
-            val port = Either.fx<Exception, Int> { uri.port }.toOption().filter { n -> n != -1 }.getOrElse { 443 }
+            val port = Option.fx{uri.port}.filter { n -> n != -1 }.getOrElse { 443 }
             HttpRequest(method, uri, port = port, protocolVersion = protocolVersion, isHttps = true)
         } else { // Http request
             val uri = if (host.startsWith("http://")) URI(host) else URI("http://$host")
-            val port = Either.fx<Exception, Int> { uri.port }.toOption().filter { n -> n != -1 }.getOrElse { 80 }
+            val port = Option.fx { uri.port }.filter { n -> n != -1 }.getOrElse { 80 }
 
             val reqAsString: String = buf.asReadOnly().toString(StandardCharsets.UTF_8)
             val mainPart = reqAsString.split("\r\n\r\n") // until payload
