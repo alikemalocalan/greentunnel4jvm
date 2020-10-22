@@ -34,7 +34,7 @@ dependencies {
 and then:
 
 ```bash
-mvn install
+./gradlew run
 ```
 
 code:
