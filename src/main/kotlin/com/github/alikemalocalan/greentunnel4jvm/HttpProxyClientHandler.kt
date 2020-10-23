@@ -1,9 +1,6 @@
 package com.github.alikemalocalan.greentunnel4jvm
 
 
-import arrow.core.None
-import arrow.core.Option
-import arrow.core.Some
 import com.github.alikemalocalan.greentunnel4jvm.models.HttpRequest
 import com.github.alikemalocalan.greentunnel4jvm.utils.DNSOverHttps
 import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
@@ -16,23 +13,24 @@ import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.channel.ChannelOption
 import io.netty.util.internal.logging.InternalLoggerFactory
 import okio.internal.commonAsUtf8ToByteArray
+import java.util.*
 
 
 class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
     private val logger = InternalLoggerFactory.getInstance(this::class.java)
-    private var remoteChannel: Option<Channel> = None
+    private var remoteChannel: Optional<Channel> = Optional.empty()
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         val clientChannel = ctx.channel()
         val buf: ByteBuf = msg as ByteBuf
 
-        if (remoteChannel.isEmpty()) { // it's first request
+        if (!remoteChannel.isPresent) { // it's first request
             if (buf.readableBytes() < 0) buf.release()
             else
                 HttpServiceUtils.fromByteBuf(buf).map { request ->
                     logger.info("${System.currentTimeMillis()}| $request")
                     clientChannel.config().isAutoRead = false // disable AutoRead until remote connection is ready
-                    remoteChannel = Some(sendRequestWithRemoteChannel(ctx, clientChannel, request, buf))
+                    remoteChannel = Optional.of(sendRequestWithRemoteChannel(ctx, clientChannel, request, buf))
                 }
         } else // just forward and taking Response
             remoteChannel.map { r ->

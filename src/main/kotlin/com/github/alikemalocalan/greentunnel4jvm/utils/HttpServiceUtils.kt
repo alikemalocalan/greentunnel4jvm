@@ -1,7 +1,5 @@
 package com.github.alikemalocalan.greentunnel4jvm.utils
 
-import arrow.core.*
-import arrow.core.extensions.fx
 import com.github.alikemalocalan.greentunnel4jvm.models.HttpRequest
 import io.netty.buffer.ByteBuf
 import io.netty.channel.Channel
@@ -18,19 +16,19 @@ object HttpServiceUtils {
     private fun readMainPart(buf: ByteBuf): String {
         val lineBuf = StringBuffer()
 
-        fun readByteBuf(isReadable: Boolean, result: Option<String>): Option<String> {
+        fun readByteBuf(isReadable: Boolean, result: Optional<String>): Optional<String> {
             return if (isReadable) {
                 val b: Byte = buf.readByte()
                 lineBuf.append(b.toChar())
                 val len: Int = lineBuf.length
                 return if (len >= 2 && lineBuf.substring(len - 2).equals("\r\n")) {
-                    readByteBuf(isReadable = false, result = Some(lineBuf.substring(0, len - 2)))
-                } else readByteBuf(buf.isReadable, None)
+                    readByteBuf(isReadable = false, result = Optional.of(lineBuf.substring(0, len - 2)))
+                } else readByteBuf(buf.isReadable, Optional.empty())
             } else result
         }
 
-        return readByteBuf(buf.isReadable, None)
-            .getOrElse {
+        return readByteBuf(buf.isReadable, Optional.empty())
+            .orElseGet {
                 buf.release()
                 ""
             }
@@ -38,10 +36,10 @@ object HttpServiceUtils {
     }
 
     @JvmStatic
-    fun fromByteBuf(buf: ByteBuf): Option<HttpRequest> {
+    fun fromByteBuf(buf: ByteBuf): Optional<HttpRequest> {
         val chunky = readMainPart(buf)
-        return if (chunky.isEmpty()) None
-        else Some(parseByteBuf(chunky, buf))
+        return if (chunky.isEmpty()) Optional.empty()
+        else Optional.of(parseByteBuf(chunky, buf))
     }
 
     @JvmStatic
@@ -51,12 +49,11 @@ object HttpServiceUtils {
         val host = firstLine[1].toLowerCase()
         val protocolVersion = firstLine[2]
         return if (method.toUpperCase().startsWith("CONNECT")) { // Https request
-            val uri = if (host.startsWith("https://")) URI(host) else URI("https://$host")
-            val port = Option.fx{uri.port}.filter { n -> n != -1 }.getOrElse { 443 }
-            HttpRequest(method, uri, port = port, protocolVersion = protocolVersion, isHttps = true)
+            val uri: URI = if (host.startsWith("https://")) URI(host) else URI("https://$host")
+            HttpRequest(method, uri, port = 443, protocolVersion = protocolVersion, isHttps = true)
         } else { // Http request
             val uri = if (host.startsWith("http://")) URI(host) else URI("http://$host")
-            val port = Option.fx { uri.port }.filter { n -> n != -1 }.getOrElse { 80 }
+            val port: Int = if (uri.port == -1) 80 else uri.port
 
             val reqAsString: String = buf.asReadOnly().toString(StandardCharsets.UTF_8)
             val mainPart = reqAsString.split("\r\n\r\n") // until payload
@@ -65,6 +62,7 @@ object HttpServiceUtils {
             val payLoad = if (mainPart.size == 2) mainPart[1] else ""
 
             val headers: List<Pair<String, String>> = headerLines
+                .asSequence()
                 .map { h ->
                     val arr = h.split(":")
                     (arr[0] to arr[1])
@@ -74,6 +72,7 @@ object HttpServiceUtils {
                 .filterNot { k -> k.first == "Via" }
                 .map(this::addKeepAliveHeaders)
                 .map(this::mixHostLetterCase)
+                .toList()
 
             return HttpRequest(
                 method,
@@ -81,8 +80,8 @@ object HttpServiceUtils {
                 protocolVersion,
                 port,
                 isHttps = false,
-                headers = Some(headers),
-                payload = Some(payLoad)
+                headers = Optional.of(headers),
+                payload = Optional.of(payLoad)
             )
         }
 

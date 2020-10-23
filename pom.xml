@@ -39,12 +39,6 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>io.arrow-kt</groupId>
-      <artifactId>arrow-syntax</artifactId>
-      <version>0.11.0</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-stdlib-jdk8</artifactId>
       <scope>runtime</scope>

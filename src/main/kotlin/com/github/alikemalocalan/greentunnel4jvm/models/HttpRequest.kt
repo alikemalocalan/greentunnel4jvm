@@ -1,12 +1,10 @@
 package com.github.alikemalocalan.greentunnel4jvm.models
 
-import arrow.core.None
-import arrow.core.Option
-import arrow.core.getOrElse
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import okio.internal.commonAsUtf8ToByteArray
 import java.net.URI
+import java.util.*
 
 data class HttpRequest(
     val method: String,
@@ -14,8 +12,8 @@ data class HttpRequest(
     val protocolVersion: String,
     val port: Int,
     val isHttps: Boolean,
-    val headers: Option<List<Pair<String, String>>> = None,
-    val payload: Option<String> = None
+    val headers: Optional<List<Pair<String, String>>> = Optional.empty(),
+    val payload: Optional<String> = Optional.empty()
 ) {
 
     private fun headersAsString(): String =
@@ -24,7 +22,7 @@ data class HttpRequest(
                 .joinToString(separator = "\r\n", postfix = "\r\n") { header ->
                     String.format("%s: %s", header.first, header.second.trim())
                 }
-        }.getOrElse { "" }
+        }.orElseGet { "" }
 
     private fun getPath(): String =
         if (uri.path.isNullOrBlank()) "/"
@@ -38,7 +36,7 @@ data class HttpRequest(
         method,
         getPath(),
         protocolVersion
-    ) + headersAsString() + "\r\n" + payload.getOrElse { "" }
+    ) + headersAsString() + "\r\n" + payload
 
     fun toByteBuf(): ByteBuf =
         if (isHttps) Unpooled.EMPTY_BUFFER
