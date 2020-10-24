@@ -47,7 +47,7 @@ object HttpProxyServer {
 
     @JvmStatic
     fun newProxyService(
-        address: String = "127.0.0.1",
+        address: String = "0.0.0.0",
         port: Int = 8080,
         threadCount: Int = 10
     ): ChannelFuture =
