@@ -18,7 +18,7 @@ data class HttpRequest(
 
     private fun headersAsString(): String =
         headers.map { headersNonNull ->
-            headersNonNull.reversed()
+            "\r\n" + headersNonNull.reversed()
                 .joinToString(separator = "\r\n", postfix = "\r\n") { header ->
                     String.format("%s: %s", header.first, header.second.trim())
                 }
@@ -32,11 +32,11 @@ data class HttpRequest(
     fun host(): String = uri.host
 
     override fun toString(): String = String.format(
-        "%s  %s  %s\r\n",
+        "%s  %s  %s",
         method,
         getPath(),
         protocolVersion
-    ) + headersAsString() + "\r\n" + payload
+    ) + headersAsString() + payload.map { payload -> "\r\n" + payload }.orElseGet { "" }
 
     fun toByteBuf(): ByteBuf =
         if (isHttps) Unpooled.EMPTY_BUFFER
