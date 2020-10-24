@@ -124,3 +124,9 @@ tasks {
         }
     }.writeTo("pom.xml")
 }
+
+shadowJar {
+    archiveBaseName.set(rootProject.name)
+    archiveClassifier.set('')
+    archiveVersion.set('')
+}
