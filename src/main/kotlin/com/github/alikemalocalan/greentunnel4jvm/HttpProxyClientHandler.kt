@@ -11,6 +11,7 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.channel.ChannelOption
+import io.netty.channel.socket.nio.NioSocketChannel
 import io.netty.util.internal.logging.InternalLoggerFactory
 import okio.internal.commonAsUtf8ToByteArray
 import java.util.*
@@ -52,7 +53,7 @@ class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
 
         val remoteFuture = Bootstrap()
             .group(clientChannel.eventLoop()) // use the same EventLoop
-            .channel(ctx.channel()::class.java)
+            .channel(NioSocketChannel::class.java)
             .option(ChannelOption.SINGLE_EVENTEXECUTOR_PER_GROUP, false)
             .option(ChannelOption.TCP_NODELAY, true)
             .option(ChannelOption.SO_KEEPALIVE, true)
@@ -77,8 +78,8 @@ class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
 
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        logger.error("Shit happen at Server Connection", cause)
         ctx.close()
+        logger.error("Netty Server Connection")
     }
 
 }

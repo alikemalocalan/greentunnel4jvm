@@ -12,18 +12,18 @@ buildscript {
 }
 
 plugins {
-    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'java'
+    id 'application'
+    id 'maven'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
 allprojects {
     group = projectGroup
     version = projectVersion
 
-    apply plugin: 'java'
     apply plugin: 'kotlin'
-    apply plugin: 'maven'
-    apply plugin: 'maven-publish'
-    apply plugin: 'application'
 
     sourceCompatibility = 1.8
     compileKotlin.kotlinOptions.jvmTarget = "1.8"
@@ -57,10 +57,7 @@ dependencies {
 
 publishing {
     publications {
-        maven(MavenPublication) {
-            groupId projectGroup
-            artifactId rootProject.name
-            version projectVersion
+        githubmaven(MavenPublication) {
 
             from components.java
 
@@ -72,7 +69,6 @@ publishing {
                     license {
                         name = 'The MIT License (MIT)'
                         url = 'https://mit-license.org/'
-                        distribution = 'repo'
                     }
                 }
                 developers {
@@ -80,7 +76,6 @@ publishing {
                         id = 'alikemalocalan'
                         name = 'Ali Kemal Öcalan'
                         email = 'alikemalocalan@gmail.com'
-                        roles = ['owner', 'developer']
                     }
                 }
                 scm {

@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 
 object HttpServiceUtils {
-    private const val clientHelloMTU: Int = 64
+    private const val clientHelloMTU: Int = 100
 
     @JvmStatic
     private fun readMainPart(buf: ByteBuf): String {
@@ -55,7 +55,7 @@ object HttpServiceUtils {
             val uri = if (host.startsWith("http://")) URI(host) else URI("http://$host")
             val port: Int = if (uri.port == -1) 80 else uri.port
 
-            val reqAsString: String = buf.asReadOnly().toString(StandardCharsets.UTF_8)
+            val reqAsString: String = buf.toString(StandardCharsets.UTF_8)
             val mainPart = reqAsString.split("\r\n\r\n") // until payload
             val headerLines = mainPart.first().split("\r\n") // for headers
 

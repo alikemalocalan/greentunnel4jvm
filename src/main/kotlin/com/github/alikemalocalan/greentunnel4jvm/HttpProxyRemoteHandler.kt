@@ -25,9 +25,9 @@ class HttpProxyRemoteHandler(val clientChannel: Channel) : ChannelInboundHandler
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        logger.error("Shit happen at Server Connection", cause)
-        flushAndClose(clientChannel)
         ctx.close()
+        flushAndClose(clientChannel)
+        logger.error("Website Connection error")
     }
 
     private fun flushAndClose(ch: Channel?) {

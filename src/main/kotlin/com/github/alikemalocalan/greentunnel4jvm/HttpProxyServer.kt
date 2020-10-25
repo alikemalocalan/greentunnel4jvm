@@ -6,17 +6,12 @@ import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.handler.logging.LogLevel
-import io.netty.handler.logging.LoggingHandler
 import io.netty.util.internal.logging.InternalLoggerFactory
 import java.net.InetSocketAddress
-import java.util.logging.Level
-import java.util.logging.Logger
 
 
 object HttpProxyServer {
     val logger = InternalLoggerFactory.getInstance(this::class.java)
-    val loggerFactory = LoggingHandler(LogLevel.WARN)
 
     val probs = System.getProperties()
 
@@ -29,11 +24,9 @@ object HttpProxyServer {
         return ServerBootstrap()
             .group(bossGroup, workerGroup)
             .channel(NioServerSocketChannel::class.java)
-            .handler(loggerFactory)
             .childHandler(object : ChannelInitializer<SocketChannel>() {
                 override fun initChannel(ch: SocketChannel) {
                     ch.pipeline().addLast(
-                        loggerFactory,
                         HttpProxyClientHandler()
                     )
                 }
@@ -49,7 +42,7 @@ object HttpProxyServer {
     fun newProxyService(
         address: String = "0.0.0.0",
         port: Int = 8080,
-        threadCount: Int = 10
+        threadCount: Int = 25
     ): ChannelFuture =
         newProxyService(InetSocketAddress(address, port), threadCount)
 
@@ -59,10 +52,9 @@ object HttpProxyServer {
         val port = probs["proxy.port"]
 
         if (port != null) {
-            logger.error("Port :$port")
+            logger.warn("Server Port :$port")
             newProxyService(port = port.toString().toInt())
         } else newProxyService()
-        Logger.getLogger("io.netty").level = Level.OFF
     }
 
 

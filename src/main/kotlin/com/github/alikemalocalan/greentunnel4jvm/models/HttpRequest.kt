@@ -32,11 +32,13 @@ data class HttpRequest(
     fun host(): String = uri.host
 
     override fun toString(): String = String.format(
-        "%s  %s  %s",
+        "%s  %s  %s%s%s",
         method,
         getPath(),
-        protocolVersion
-    ) + headersAsString() + payload.map { payload -> "\r\n" + payload }.orElseGet { "" }
+        protocolVersion,
+        headersAsString(),
+        payload.map { payload -> "\r\n" + payload }.orElseGet { "" }
+    )
 
     fun toByteBuf(): ByteBuf =
         if (isHttps) Unpooled.EMPTY_BUFFER

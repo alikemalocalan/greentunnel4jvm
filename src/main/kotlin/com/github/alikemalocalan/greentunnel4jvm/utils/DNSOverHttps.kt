@@ -1,13 +1,16 @@
 package com.github.alikemalocalan.greentunnel4jvm.utils
 
+import io.netty.util.internal.logging.InternalLoggerFactory
 import okhttp3.Cache
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
 import java.io.File
+import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit.SECONDS
 
 object DNSOverHttps {
+    private val logger = InternalLoggerFactory.getInstance(this::class.java)
 
     private val cache = Cache(
         directory = File(System.getProperty("java.io.tmpdir"), "http_cache"),
@@ -30,5 +33,10 @@ object DNSOverHttps {
 
     @JvmStatic
     fun lookUp(address: String): String =
-        dns.lookup(address).first().hostAddress
+        try {
+            dns.lookup(address).first().hostAddress
+        } catch (ex: UnknownHostException) {
+            logger.error(ex.message)
+            "127.0.0.1"
+        }
 }
