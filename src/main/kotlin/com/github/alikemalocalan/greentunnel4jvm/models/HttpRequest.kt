@@ -1,8 +1,10 @@
 package com.github.alikemalocalan.greentunnel4jvm.models
 
+import com.github.alikemalocalan.greentunnel4jvm.utils.DNSOverHttps
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import okio.internal.commonAsUtf8ToByteArray
+import java.net.InetSocketAddress
 import java.net.URI
 import java.util.*
 
@@ -43,4 +45,7 @@ data class HttpRequest(
     fun toByteBuf(): ByteBuf =
         if (isHttps) Unpooled.EMPTY_BUFFER
         else Unpooled.wrappedBuffer(toString().commonAsUtf8ToByteArray())
+
+    fun toInetSocketAddress() = InetSocketAddress(DNSOverHttps.lookUp(host()), port)
+
 }

@@ -21,7 +21,7 @@ object HttpServiceUtils {
                 val b: Byte = buf.readByte()
                 lineBuf.append(b.toChar())
                 val len: Int = lineBuf.length
-                return if (len >= 2 && lineBuf.substring(len - 2).equals("\r\n")) {
+                return if (len >= 2 && lineBuf.substring(len - 2) == "\r\n") {
                     readByteBuf(isReadable = false, result = Optional.of(lineBuf.substring(0, len - 2)))
                 } else readByteBuf(buf.isReadable, Optional.empty())
             } else result
@@ -36,7 +36,7 @@ object HttpServiceUtils {
     }
 
     @JvmStatic
-    fun fromByteBuf(buf: ByteBuf): Optional<HttpRequest> {
+    fun httpRequestfromByteBuf(buf: ByteBuf): Optional<HttpRequest> {
         val chunky = readMainPart(buf)
         return if (chunky.isEmpty()) Optional.empty()
         else Optional.of(parseByteBuf(chunky, buf))

@@ -3,11 +3,11 @@ package com.github.alikemalocalan.greentunnel4jvm
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
+import io.netty.channel.ChannelOption
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.util.internal.logging.InternalLoggerFactory
-import java.net.InetSocketAddress
 
 
 object HttpProxyServer {
@@ -16,35 +16,30 @@ object HttpProxyServer {
     val probs = System.getProperties()
 
     @JvmStatic
-    fun newProxyService(socket: InetSocketAddress, threadCount: Int = 2): ChannelFuture {
-        logger.debug("HttpProxyServer started on : ${socket.address}:${socket.port}")
-        val bossGroup = NioEventLoopGroup(threadCount)
+    fun newProxyService(port: Int = 8080, threadCount: Int = 25): ChannelFuture {
+        logger.debug("HttpProxyServer started on :${port}")
         val workerGroup = NioEventLoopGroup(threadCount)
 
-        return ServerBootstrap()
-            .group(bossGroup, workerGroup)
+        val bootstrap: ServerBootstrap = ServerBootstrap()
+            .group(workerGroup)
             .channel(NioServerSocketChannel::class.java)
-            .childHandler(object : ChannelInitializer<SocketChannel>() {
-                override fun initChannel(ch: SocketChannel) {
-                    ch.pipeline().addLast(
-                        HttpProxyClientHandler()
-                    )
-                }
-            })
-            .bind(socket)
+            .option(ChannelOption.SO_BACKLOG, 1024)
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
+
+
+        return bootstrap.childHandler(object : ChannelInitializer<SocketChannel>() {
+            override fun initChannel(ch: SocketChannel) {
+                ch.pipeline().addLast(
+                    HttpProxyClientHandler()
+                )
+            }
+        })
+            .bind(port)
             .sync()
             .channel()
             .closeFuture()
             .sync()
     }
-
-    @JvmStatic
-    fun newProxyService(
-        address: String = "0.0.0.0",
-        port: Int = 8080,
-        threadCount: Int = 25
-    ): ChannelFuture =
-        newProxyService(InetSocketAddress(address, port), threadCount)
 
 
     @JvmStatic
