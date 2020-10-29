@@ -26,7 +26,7 @@ Add the dependency:
 
 ```
 dependencies {
-	        implementation 'com.github.alikemalocalan:greentunnel4jvm:1.12-SNAPSHOT'
+	        implementation 'com.github.alikemalocalan:greentunnel4jvm:1.13-SNAPSHOT'
         }
 ```
 
