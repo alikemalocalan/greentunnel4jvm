@@ -51,7 +51,7 @@ class HttpProxyServer {
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "src/main/resources/console-log-config.xml")
     val port: Any? = System.getProperties()["proxy.port"]
 
