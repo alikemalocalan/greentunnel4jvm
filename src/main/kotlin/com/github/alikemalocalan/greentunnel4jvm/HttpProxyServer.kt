@@ -2,7 +2,6 @@ package com.github.alikemalocalan.greentunnel4jvm
 
 import ch.qos.logback.classic.util.ContextInitializer
 import io.netty.bootstrap.ServerBootstrap
-import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
 import io.netty.channel.nio.NioEventLoopGroup
@@ -15,32 +14,41 @@ import org.slf4j.LoggerFactory
 class HttpProxyServer {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    private val workerGroup = NioEventLoopGroup(25)
+    private val workerGroup = NioEventLoopGroup(10)
+    private val bossGroup = NioEventLoopGroup(10)
 
     private val bootstrap: ServerBootstrap = ServerBootstrap()
-        .group(workerGroup)
+        .group(bossGroup, workerGroup)
         .channel(NioServerSocketChannel::class.java)
         .option(ChannelOption.SO_BACKLOG, 1024)
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
 
 
-    fun createNettyServer(port: Int = 8080): ChannelFuture {
+    fun createNettyServer(port: Int = 8080) {
         logger.debug("HttpProxyServer started on :${port}")
-        return bootstrap.childHandler(object : ChannelInitializer<SocketChannel>() {
-            override fun initChannel(ch: SocketChannel) {
-                ch.pipeline().addLast(
-                    HttpProxyClientHandler()
-                )
-            }
-        })
-            .bind(port)
-            .sync()
-            .channel()
-            .closeFuture()
-            .sync()
+        try {
+            bootstrap.childHandler(object : ChannelInitializer<SocketChannel>() {
+                override fun initChannel(ch: SocketChannel) {
+                    ch.pipeline().addLast(
+                        HttpProxyClientHandler()
+                    )
+                }
+            })
+                .bind(port)
+                .sync()
+                .channel()
+                .closeFuture()
+                .sync()
+        } finally {
+            stop()
+        }
     }
 
-    fun stop(server: ChannelFuture?): Boolean? = server?.cancel(false)
+    fun stop(): Boolean? {
+        bossGroup.shutdownGracefully()
+        workerGroup.shutdownGracefully()
+        return true
+    }
 }
 
 fun main(args: Array<String>) {
