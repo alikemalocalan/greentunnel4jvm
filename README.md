@@ -40,7 +40,7 @@ and then:
 code:
 
 ```kotlin
-HttpProxyServer.newProxyService()
+com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer().newProxyService()
 
 ```
 
