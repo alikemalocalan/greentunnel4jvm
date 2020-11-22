@@ -25,7 +25,7 @@ class HttpProxyServer {
 
 
     fun createNettyServer(port: Int = 8080) {
-        logger.debug("HttpProxyServer started on :${port}")
+        logger.info("HttpProxyServer started on :${port}")
         try {
             bootstrap.childHandler(object : ChannelInitializer<SocketChannel>() {
                 override fun initChannel(ch: SocketChannel) {
