@@ -5,11 +5,12 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelFutureListener
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
-import io.netty.util.internal.logging.InternalLoggerFactory
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 
-class HttpProxyRemoteHandler(val clientChannel: Channel) : ChannelInboundHandlerAdapter() {
-    val logger = InternalLoggerFactory.getInstance(this::class.java)
+class HttpProxyRemoteHandler(private val clientChannel: Channel) : ChannelInboundHandlerAdapter() {
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun channelInactive(ctx: ChannelHandlerContext?) {
         flushAndClose(clientChannel)

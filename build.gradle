@@ -44,7 +44,9 @@ dependencies {
     compile 'io.netty:netty-handler-proxy:4.1.53.Final'
     compile 'com.squareup.okhttp3:okhttp:4.9.0'
     compile 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.9.0'
-    compile 'ch.qos.logback:logback-classic:1.2.3'
+    implementation 'ch.qos.logback:logback-classic:1.2.3'
+    implementation 'ch.qos.logback:logback-core:1.2.3'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
 }
 
 jar {
@@ -77,42 +79,42 @@ task sourcesJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource, 'build/generated/source/kapt/main', 'build/generated/source/kaptKotlin/main'
 }
 publishing {
-        publications {
-            githubPublish(MavenPublication) {
-                artifactId projectName
-                version projectVersion
+    publications {
+        githubPublish(MavenPublication) {
+            artifactId projectName
+            version projectVersion
 
-                //from components.java
-                artifact(sourcesJar)
-                artifact(jar)
+            //from components.java
+            artifact(sourcesJar)
+            artifact(jar)
 
-                pom {
-                    name = projectName
-                    description = 'Green Tunnel Alternative for JVM Languages'
+            pom {
+                name = projectName
+                description = 'Green Tunnel Alternative for JVM Languages'
+                url = 'https://github.com/alikemalocalan/greentunnel4jvm'
+                licenses {
+                    license {
+                        name = 'The MIT License (MIT)'
+                        url = 'https://mit-license.org/'
+                        distribution = 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'alikemalocalan'
+                        name = 'Ali Kemal Öcalan'
+                        email = 'alikemalocalan@gmail.com'
+                        roles = ['owner', 'developer']
+                    }
+                }
+                scm {
                     url = 'https://github.com/alikemalocalan/greentunnel4jvm'
-                    licenses {
-                        license {
-                            name = 'The MIT License (MIT)'
-                            url = 'https://mit-license.org/'
-                            distribution = 'repo'
-                        }
-                    }
-                    developers {
-                        developer {
-                            id = 'alikemalocalan'
-                            name = 'Ali Kemal Öcalan'
-                            email = 'alikemalocalan@gmail.com'
-                            roles = ['owner', 'developer']
-                        }
-                    }
-                    scm {
-                        url = 'https://github.com/alikemalocalan/greentunnel4jvm'
-                        connection = 'scm:git:https://github.com/alikemalocalan/greentunnel4jvm.git'
-                        developerConnection = 'scm:git:ssh://git@github.com/alikemalocalan/greentunnel4jvm.git'
-                    }
+                    connection = 'scm:git:https://github.com/alikemalocalan/greentunnel4jvm.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/alikemalocalan/greentunnel4jvm.git'
                 }
             }
         }
+    }
     repositories {
         maven {
             name = "GitHubPackages"

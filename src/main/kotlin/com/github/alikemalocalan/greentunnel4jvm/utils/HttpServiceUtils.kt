@@ -5,9 +5,13 @@ import io.netty.buffer.ByteBuf
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.util.concurrent.GenericFutureListener
+import java.io.IOException
+import java.net.DatagramSocket
+import java.net.ServerSocket
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.util.*
+
 
 object HttpServiceUtils {
     private const val clientHelloMTU: Int = 100
@@ -121,5 +125,38 @@ object HttpServiceUtils {
         if (header.first.equals("host", true))
             makeUpperRandomChar(header.first) to makeUpperRandomChar(header.second)
         else header
+
+    @Throws(IllegalArgumentException::class)
+    @JvmStatic
+    fun availablePort(ipAsString: String): Int? {
+        val MIN_PORT_NUMBER = 1100
+        val MAX_PORT_NUMBER = 49151
+
+        val port: Int = ipAsString.toInt()
+        if (port < MIN_PORT_NUMBER || port > MAX_PORT_NUMBER) {
+            throw IllegalArgumentException("Invalid start port: " + port)
+        }
+
+        var ss: ServerSocket? = null
+        var ds: DatagramSocket? = null
+        try {
+            ss = ServerSocket(port)
+            ss.reuseAddress = true
+            ds = DatagramSocket(port)
+            ds.reuseAddress = true
+            return port
+        } catch (e: IOException) {
+            e.printStackTrace()
+        } finally {
+            ds?.close()
+            if (ss != null) {
+                try {
+                    ss.close()
+                } catch (e: IOException) {
+                }
+            }
+        }
+        return null
+    }
 
 }

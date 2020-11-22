@@ -1,16 +1,17 @@
 package com.github.alikemalocalan.greentunnel4jvm.utils
 
-import io.netty.util.internal.logging.InternalLoggerFactory
 import okhttp3.Cache
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit.SECONDS
 
 object DNSOverHttps {
-    private val logger = InternalLoggerFactory.getInstance(this::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     private val cache = Cache(
         directory = File(System.getProperty("java.io.tmpdir"), "http_cache"),

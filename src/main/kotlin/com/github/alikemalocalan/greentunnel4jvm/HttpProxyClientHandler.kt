@@ -8,13 +8,14 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.channel.*
 import io.netty.channel.socket.nio.NioSocketChannel
-import io.netty.util.internal.logging.InternalLoggerFactory
 import okio.internal.commonAsUtf8ToByteArray
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.*
 
 
 class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
-    private val logger = InternalLoggerFactory.getInstance(this::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private var remoteChannel: Optional<Channel> = Optional.empty()
 
     private val bootstrap: Bootstrap = Bootstrap()

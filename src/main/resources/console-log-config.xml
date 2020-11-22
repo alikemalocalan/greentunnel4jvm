@@ -1,0 +1,15 @@
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <encoder>
+            <pattern>%date | %-5level | %logger{1} | %msg%n</pattern>
+        </encoder>
+    </appender>
+    <logger name="com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer" level="DEBUG"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="GUI"/>
+    </root>
+
+</configuration>

@@ -208,5 +208,3 @@ cwallet.sso.lck
 .idea/sbt.xml
 .idea/vcs.xml
 java_pid57070.hprof
-src/main/java/
-src/test/
