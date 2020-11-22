@@ -22,7 +22,7 @@ public class MainForm extends JFrame {
     private int port;
 
     public MainForm() {
-        button.addActionListener(this::startServerButtunListiner);
+        button.addActionListener(this::startServerButtonListener);
 
         panel.add(textField_PORT, BorderLayout.LINE_START);
         panel.add(button, BorderLayout.LINE_END);
@@ -51,7 +51,7 @@ public class MainForm extends JFrame {
     }
 
 
-    private void startServerButtunListiner(ActionEvent e) {
+    private void startServerButtonListener(ActionEvent e) {
         try {
             if (serverThread == null) {
                 setPort(availablePort(textField_PORT.getText()));
@@ -62,6 +62,7 @@ public class MainForm extends JFrame {
             } else {
                 SystemProxyUtil.getSystemProxySetting().disableProxy();
                 serverThread.stopServer();
+                serverThread.interrupt();
                 serverThread = null;
                 button.setText("Start");
             }

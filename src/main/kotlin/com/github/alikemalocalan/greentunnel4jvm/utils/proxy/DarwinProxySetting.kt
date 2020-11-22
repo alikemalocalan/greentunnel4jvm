@@ -16,7 +16,7 @@ class DarwinProxySetting : ProxySetting {
     }
 
     override fun disableProxy() {
-        SystemProxyUtil.runCommand("networksetup -setwebproxy off")
-        SystemProxyUtil.runCommand("networksetup -setsecurewebproxy off")
+        SystemProxyUtil.runCommand("networksetup -setwebproxystate '${wifiAdapter}' off")
+        SystemProxyUtil.runCommand("networksetup -setsecurewebproxystate '${wifiAdapter}' off")
     }
 }

@@ -17,7 +17,7 @@ class ServerThread(name: String, private val port: Int) : Thread(name) {
 
     fun stopServer() {
         serverBuilder.stop(server)
-        this.stop()
+        currentThread().interrupt()
         running.set(false)
     }
 

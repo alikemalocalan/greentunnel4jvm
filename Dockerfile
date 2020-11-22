@@ -9,5 +9,5 @@ RUN cp /src/build/libs/greentunnel4jvm.jar /bin/runner/
 WORKDIR /bin/runner
 RUN rm -rf /src
 
-CMD ["java","-XX:MaxRAMPercentage=45", "-XshowSettings:vm","-Dio.netty.tryReflectionSetAccessible=true","--illegal-access=warn","--add-opens","java.base/jdk.internal.misc=ALL-UNNAMED","-jar","greentunnel4jvm.jar","com.github.alikemalocalan.greentunnel4jvm.HttpProxyServerKt"]
+CMD ["java","-XX:MaxRAMPercentage=45", "-XshowSettings:vm","-Dio.netty.tryReflectionSetAccessible=true","--illegal-access=warn","--add-opens","java.base/jdk.internal.misc=ALL-UNNAMED","-cp","greentunnel4jvm.jar","com.github.alikemalocalan.greentunnel4jvm.HttpProxyServerKt"]
 EXPOSE 8080
