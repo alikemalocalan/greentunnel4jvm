@@ -44,7 +44,7 @@ class HttpProxyServer {
         }
     }
 
-    fun stop(): Boolean? {
+    fun stop(): Boolean {
         bossGroup.shutdownGracefully()
         workerGroup.shutdownGracefully()
         return true
@@ -52,7 +52,7 @@ class HttpProxyServer {
 }
 
 fun main() {
-    System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "src/main/resources/console-log-config.xml")
+    System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "console-log-config.xml")
     val port: Any? = System.getProperties()["proxy.port"]
 
     fun getPort() = port?.toString()?.toInt() ?: 8080

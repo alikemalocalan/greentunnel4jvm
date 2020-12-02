@@ -3,25 +3,20 @@ package com.github.alikemalocalan.greentunnel4jvm.utils
 import com.github.alikemalocalan.greentunnel4jvm.utils.proxy.DarwinProxySetting
 import com.github.alikemalocalan.greentunnel4jvm.utils.proxy.LinuxProxySetting
 import com.github.alikemalocalan.greentunnel4jvm.utils.proxy.ProxySetting
+import com.github.alikemalocalan.greentunnel4jvm.utils.proxy.WindowProxySetting
+import java.io.InputStream
 
 
 object SystemProxyUtil {
 
     @JvmStatic
     fun getSystemProxySetting(): ProxySetting {
-        val operSys = System.getProperty("os.name").toLowerCase()
-        if (operSys.contains("win")) {
-            DarwinProxySetting()
-        } else if (operSys.contains("nix") || operSys.contains("nux")
-            || operSys.contains("aix")
-        ) {
-            return LinuxProxySetting()
-        } else if (operSys.contains("mac")) {
-            return DarwinProxySetting()
-        } else if (operSys.contains("sunos")) {
-            return DarwinProxySetting()
+        val operatingSystem = System.getProperty("os.name").toLowerCase()
+        return when {
+            operatingSystem.contains("win") -> WindowProxySetting()
+            operatingSystem.contains("mac") -> DarwinProxySetting()
+            else -> LinuxProxySetting()
         }
-        return LinuxProxySetting()
     }
 
 
@@ -35,15 +30,14 @@ object SystemProxyUtil {
         println(commands.joinToString(" "))
         val process = Runtime.getRuntime().exec(commands)
         process.waitFor()
-        return String(process.inputStream.readAllBytes()).trim()
+        return readAllString(process.inputStream).trim()
     }
 
     @JvmStatic
-    fun runCommand(commands: Array<String>): String {
-        println(commands.joinToString(" "))
-        val process = Runtime.getRuntime().exec(commands)
-        process.waitFor()
-        return String(process.inputStream.readAllBytes())
+    private fun readAllString(inputStream: InputStream): String {
+        val strArray = ByteArray(inputStream.available())
+        inputStream.read(strArray)
+        return String(strArray)
     }
 
 }

@@ -11,7 +11,7 @@ object Gui {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "src/main/resources/gui-log-config.xml")
+        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "gui-log-config.xml")
 
         SwingUtilities.invokeAndWait {
             mainFrom

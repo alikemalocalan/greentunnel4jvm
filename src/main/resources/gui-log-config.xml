@@ -8,7 +8,7 @@
     <logger name="com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer" level="INFO"/>
     <appender name="GUI" class="com.github.alikemalocalan.greentunnel4jvm.log.Appender"/>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="GUI"/>
     </root>

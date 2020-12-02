@@ -23,10 +23,10 @@ allprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'application'
 
-    sourceCompatibility = 9
-    targetCompatibility = 9
-    compileKotlin.kotlinOptions.jvmTarget = "9"
-    compileTestKotlin.kotlinOptions.jvmTarget = "9"
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    compileKotlin.kotlinOptions.jvmTarget = "1.8"
+    compileTestKotlin.kotlinOptions.jvmTarget = "1.8"
     compileJava.options.encoding = 'UTF-8'
 
     repositories {
@@ -51,6 +51,9 @@ dependencies {
 }
 
 jar {
+    from 'resources', {
+        into 'resources'
+    }
     manifest {
         attributes 'Main-Class': projectMainClassName
     }
@@ -68,11 +71,17 @@ pom {
     }
 }.writeTo("pom.xml")
 
+task copyResources(type: Copy) {
+    from "${projectDir}/src/main/resources"
+    into "${buildDir}/classes/kotlin/main/META-INF"
+}
+
 shadowJar {
     archiveBaseName.set(rootProject.name)
     archiveClassifier.set('')
     archiveVersion.set('')
 }
+shadowJar.dependsOn copyResources
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     //noinspection GroovyAccessibility //alternatively replace this with archiveClassifier.set('...')
