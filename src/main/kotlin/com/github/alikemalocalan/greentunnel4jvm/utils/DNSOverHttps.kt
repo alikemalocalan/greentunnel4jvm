@@ -37,7 +37,7 @@ object DNSOverHttps {
         try {
             dns.lookup(address).first().hostAddress
         } catch (ex: UnknownHostException) {
-            logger.error(ex.message)
+            logger.error("${ex.message} for : $address")
             "127.0.0.1"
         }
 }

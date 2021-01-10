@@ -26,7 +26,7 @@ data class HttpRequest(
                 }
         }.orElseGet { "" }
 
-    private fun getPath(): String =
+    fun path(): String =
         if (uri.path.isNullOrBlank()) "/"
         else uri.path
 
@@ -36,7 +36,7 @@ data class HttpRequest(
     override fun toString(): String = String.format(
         "%s  %s  %s%s%s",
         method,
-        getPath(),
+        path(),
         protocolVersion,
         headersAsString(),
         payload.map { payload -> "\r\n" + payload }.orElseGet { "" }

@@ -39,12 +39,12 @@ class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
                     ctx.channel()
                         .writeAndFlush(Unpooled.wrappedBuffer("HTTP/1.1 200 Connection Established\r\n\r\n".commonAsUtf8ToByteArray()))
                 ctx.channel().config().isAutoRead = false // disable AutoRead until remote connection is ready
-                remoteChannel = Optional.of(sendRequestWithRemoteChannel(ctx, request))
+                remoteChannel = Optional.of(sendRequestToRemoteChannel(ctx, request))
                 buf.release()
             }
     }
 
-    private fun sendRequestWithRemoteChannel(
+    private fun sendRequestToRemoteChannel(
         ctx: ChannelHandlerContext,
         request: HttpRequest
     ): Channel {
@@ -59,7 +59,7 @@ class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
                 ctx.channel().config().isAutoRead = true // connection is ready, enable AutoRead
                 HttpServiceUtils.writeToHttps(request.toByteBuf(), remoteFuture.channel())
                 ctx.channel().read()
-            } else ctx.close()
+            }
         }
         return remoteFuture.channel()
     }
