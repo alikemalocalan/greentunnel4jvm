@@ -42,8 +42,7 @@ application {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    compile 'io.netty:netty-handler-proxy:4.1.56.Final'
-    compile 'com.squareup.okhttp3:okhttp:4.9.0'
+    compile 'io.netty:netty-handler-proxy:4.1.58.Final'
     compile 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.9.0'
     implementation 'ch.qos.logback:logback-classic:1.2.3'
 }

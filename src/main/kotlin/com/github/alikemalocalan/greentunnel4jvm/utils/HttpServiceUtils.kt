@@ -2,9 +2,11 @@ package com.github.alikemalocalan.greentunnel4jvm.utils
 
 import com.github.alikemalocalan.greentunnel4jvm.models.HttpRequest
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.util.concurrent.GenericFutureListener
+import okio.internal.commonAsUtf8ToByteArray
 import java.io.IOException
 import java.net.DatagramSocket
 import java.net.ServerSocket
@@ -17,38 +19,38 @@ object HttpServiceUtils {
     private const val clientHelloMTU: Int = 100
 
     @JvmStatic
-    private fun readMainPart(buf: ByteBuf): String {
-        val lineBuf = StringBuffer()
+    fun fix301MovedResponse(response: String, httpRequest: HttpRequest): ByteBuf {
+        val headers = if (response.contains("\r\n"))
+            response.split("\r\n")
+        else response.split("\n")
 
-        fun readByteBuf(isReadable: Boolean, result: Optional<String>): Optional<String> {
-            return if (isReadable) {
-                val b: Byte = buf.readByte()
-                lineBuf.append(b.toChar())
-                val len: Int = lineBuf.length
-                return if (len >= 2 && lineBuf.substring(len - 2) == "\r\n") {
-                    readByteBuf(isReadable = false, result = Optional.of(lineBuf.substring(0, len - 2)))
-                } else readByteBuf(buf.isReadable, Optional.empty())
-            } else result
-        }
+        val result: String = (
+                if (headers.any { it.startsWith("Connection: close") }) {
+                    headers.map { headerLine ->
+                        when {
+                            headerLine.startsWith("Connection") -> "Connection: keep-alive"
+                            headerLine.startsWith("Proxy-Connection") -> "Connection: keep-alive"
+                            headerLine.startsWith("Location") -> "Location: https://${httpRequest.host()}${httpRequest.path()}"
+                            else -> headerLine
+                        }
+                    }.filterNot(String::isBlank)
+                        .joinToString(separator = "\r\n")
+                } else headers.joinToString(separator = "\r\n")
+                ) + "\r\n"
 
-        return readByteBuf(buf.isReadable, Optional.empty())
-            .orElseGet {
-                buf.release()
-                ""
-            }
-
+        return Unpooled.wrappedBuffer(result.commonAsUtf8ToByteArray())
     }
 
     @JvmStatic
     fun httpRequestfromByteBuf(buf: ByteBuf): Optional<HttpRequest> {
-        val chunky = readMainPart(buf)
-        return if (chunky.isEmpty()) Optional.empty()
-        else Optional.of(parseByteBuf(chunky, buf))
+        return if (buf.isReadable) {
+            return Optional.of(parseHttpRequestFromByteBuf(buf.toString(StandardCharsets.UTF_8)))
+        } else Optional.empty()
     }
 
     @JvmStatic
-    private fun parseByteBuf(chunky: String, buf: ByteBuf): HttpRequest {
-        val firstLine = chunky.split(" ")
+    private fun parseHttpRequestFromByteBuf(reqAsString: String): HttpRequest {
+        val firstLine = reqAsString.split("\r\n").first().split(" ")
         val method = firstLine[0]
         val host = firstLine[1].toLowerCase()
         val protocolVersion = firstLine[2]
@@ -59,9 +61,8 @@ object HttpServiceUtils {
             val uri = if (host.startsWith("http://")) URI(host) else URI("http://$host")
             val port: Int = if (uri.port == -1) 80 else uri.port
 
-            val reqAsString: String = buf.toString(StandardCharsets.UTF_8)
             val mainPart = reqAsString.split("\r\n\r\n") // until payload
-            val headerLines = mainPart.first().split("\r\n") // for headers
+            val headerLines = mainPart.first().split("\r\n").drop(1) // for headers
 
             val payLoad = if (mainPart.size == 2) mainPart[1] else ""
 
@@ -92,7 +93,7 @@ object HttpServiceUtils {
     }
 
     @JvmStatic
-    fun writeToHttps(buf: ByteBuf, remoteChannel: Channel) {
+    fun splitAndWriteByteBuf(buf: ByteBuf, remoteChannel: Channel) {
         if (buf.isReadable) {
             val bufSize: Int = if (buf.readableBytes() > clientHelloMTU) clientHelloMTU else buf.readableBytes()
             remoteChannel.writeAndFlush(buf.readSlice(bufSize).retain())
@@ -100,7 +101,7 @@ object HttpServiceUtils {
                     if (future.isSuccess) remoteChannel.read()
                     else future.channel().close()
                 })
-            writeToHttps(buf, remoteChannel)
+            splitAndWriteByteBuf(buf, remoteChannel)
         }
     }
 
@@ -157,6 +158,30 @@ object HttpServiceUtils {
             }
         }
         return null
+    }
+
+    @JvmStatic
+    fun forceHttpToHttps(siteName: String): ByteBuf {
+        val method = "HTTP/1.1 301 Moved Permanently"
+        val payload = "Redirecting to https://$siteName\n"
+
+        val headerLines: String = listOf(
+            "Content-Type: text/plain",
+            "Connection: keep-alive",
+            "Content-Length: ${payload.length}",
+            "Server: greenTunnel",
+            "Location: https://$siteName"
+        ).joinToString(separator = "\r\n", postfix = "\r\n")
+
+        val responseAsString = String.format(
+            "%s\n%s\n%s",
+            method,
+            headerLines,
+            payload,
+        )
+
+        return Unpooled.wrappedBuffer(responseAsString.commonAsUtf8ToByteArray())
+
     }
 
 }

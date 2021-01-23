@@ -17,13 +17,7 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-handler-proxy</artifactId>
-      <version>4.1.56.Final</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.squareup.okhttp3</groupId>
-      <artifactId>okhttp</artifactId>
-      <version>4.9.0</version>
+      <version>4.1.58.Final</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

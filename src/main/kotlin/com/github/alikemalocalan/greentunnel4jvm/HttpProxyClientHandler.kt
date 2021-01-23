@@ -30,17 +30,24 @@ class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
 
         if (remoteChannel.isPresent) { // request take second time from the client
             remoteChannel.map { r ->
-                HttpServiceUtils.writeToHttps(buf, r)
+                HttpServiceUtils.splitAndWriteByteBuf(buf, r)
                 buf.release()
             }
         } else // request take first time from the client
             HttpServiceUtils.httpRequestfromByteBuf(buf).map { request ->
-                if (request.isHttps) // if https,return respond 200
+                if (request.isHttps) { // if https,return respond 200
                     ctx.channel()
                         .writeAndFlush(Unpooled.wrappedBuffer("HTTP/1.1 200 Connection Established\r\n\r\n".commonAsUtf8ToByteArray()))
+                    remoteChannel = Optional.of(sendRequestToRemoteChannel(ctx, request))
+
+                } else { //if http,force to https without any remote connection
+                    val response = HttpServiceUtils.forceHttpToHttps(request.host())
+                    ctx.channel()
+                        .writeAndFlush(response)
+                }
                 ctx.channel().config().isAutoRead = false // disable AutoRead until remote connection is ready
-                remoteChannel = Optional.of(sendRequestToRemoteChannel(ctx, request))
                 buf.release()
+
             }
     }
 
@@ -57,7 +64,7 @@ class HttpProxyClientHandler : ChannelInboundHandlerAdapter() {
         remoteFuture.addListener { future ->
             if (future.isSuccess) {
                 ctx.channel().config().isAutoRead = true // connection is ready, enable AutoRead
-                HttpServiceUtils.writeToHttps(request.toByteBuf(), remoteFuture.channel())
+                HttpServiceUtils.splitAndWriteByteBuf(request.toByteBuf(), remoteFuture.channel())
                 ctx.channel().read()
             }
         }
