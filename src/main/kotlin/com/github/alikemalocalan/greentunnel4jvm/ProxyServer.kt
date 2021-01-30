@@ -1,6 +1,8 @@
 package com.github.alikemalocalan.greentunnel4jvm
 
 import ch.qos.logback.classic.util.ContextInitializer
+import com.github.alikemalocalan.greentunnel4jvm.handler.ProxyClientHandler
+import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
@@ -11,7 +13,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 
-class HttpProxyServer {
+class ProxyServer {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     private val workerGroup = NioEventLoopGroup(10)
@@ -22,6 +24,7 @@ class HttpProxyServer {
         .channel(NioServerSocketChannel::class.java)
         .option(ChannelOption.SO_BACKLOG, 1024)
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
+        .childOption(ChannelOption.SO_KEEPALIVE, true)
 
 
     fun createNettyServer(port: Int = 8080) {
@@ -30,7 +33,7 @@ class HttpProxyServer {
             bootstrap.childHandler(object : ChannelInitializer<SocketChannel>() {
                 override fun initChannel(ch: SocketChannel) {
                     ch.pipeline().addLast(
-                        HttpProxyClientHandler()
+                        ProxyClientHandler()
                     )
                 }
             })
@@ -55,9 +58,9 @@ fun main() {
     System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "console-log-config.xml")
     val port: Any? = System.getProperties()["proxy.port"]
 
-    fun getPort() = port?.toString()?.toInt() ?: 8080
+    fun getPort() = port?.toString()?.toInt() ?: HttpServiceUtils.defaultPort
 
-    val server = HttpProxyServer()
+    val server = ProxyServer()
 
     server.createNettyServer(port = getPort())
 }

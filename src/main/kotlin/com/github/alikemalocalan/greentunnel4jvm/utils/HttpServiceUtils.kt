@@ -4,9 +4,7 @@ import com.github.alikemalocalan.greentunnel4jvm.models.HttpRequest
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
-import io.netty.channel.ChannelFuture
-import io.netty.util.concurrent.GenericFutureListener
-import okio.internal.commonAsUtf8ToByteArray
+import io.netty.util.CharsetUtil
 import java.io.IOException
 import java.net.DatagramSocket
 import java.net.ServerSocket
@@ -16,35 +14,19 @@ import java.util.*
 
 
 object HttpServiceUtils {
+    const val defaultPort: Int = 8080
     private const val clientHelloMTU: Int = 100
 
     @JvmStatic
-    fun fix301MovedResponse(response: String, httpRequest: HttpRequest): ByteBuf {
-        val headers = if (response.contains("\r\n"))
-            response.split("\r\n")
-        else response.split("\n")
-
-        val result: String = (
-                if (headers.any { it.startsWith("Connection: close") }) {
-                    headers.map { headerLine ->
-                        when {
-                            headerLine.startsWith("Connection") -> "Connection: keep-alive"
-                            headerLine.startsWith("Proxy-Connection") -> "Connection: keep-alive"
-                            headerLine.startsWith("Location") -> "Location: https://${httpRequest.host()}${httpRequest.path()}"
-                            else -> headerLine
-                        }
-                    }.filterNot(String::isBlank)
-                        .joinToString(separator = "\r\n")
-                } else headers.joinToString(separator = "\r\n")
-                ) + "\r\n"
-
-        return Unpooled.wrappedBuffer(result.commonAsUtf8ToByteArray())
-    }
+    fun firstHttpsResponse(): ByteBuf =
+        Unpooled.copiedBuffer("HTTP/1.1 200 Connection Established\r\n\r\n", CharsetUtil.UTF_8)
 
     @JvmStatic
-    fun httpRequestfromByteBuf(buf: ByteBuf): Optional<HttpRequest> {
+    fun httpRequestFromByteBuf(buf: ByteBuf): Optional<HttpRequest> {
         return if (buf.isReadable) {
-            return Optional.of(parseHttpRequestFromByteBuf(buf.toString(StandardCharsets.UTF_8)))
+            val request = buf.toString(StandardCharsets.UTF_8)
+            buf.release()
+            return Optional.of(parseHttpRequestFromByteBuf(request))
         } else Optional.empty()
     }
 
@@ -92,17 +74,12 @@ object HttpServiceUtils {
 
     }
 
-    @JvmStatic
-    fun splitAndWriteByteBuf(buf: ByteBuf, remoteChannel: Channel) {
+    tailrec fun splitAndWriteByteBuf(buf: ByteBuf, remoteChannel: Channel) {
         if (buf.isReadable) {
             val bufSize: Int = if (buf.readableBytes() > clientHelloMTU) clientHelloMTU else buf.readableBytes()
             remoteChannel.writeAndFlush(buf.readSlice(bufSize).retain())
-                .addListener(GenericFutureListener { future: ChannelFuture ->
-                    if (future.isSuccess) remoteChannel.read()
-                    else future.channel().close()
-                })
             splitAndWriteByteBuf(buf, remoteChannel)
-        }
+        } else buf.release()
     }
 
     /*
@@ -161,7 +138,7 @@ object HttpServiceUtils {
     }
 
     @JvmStatic
-    fun forceHttpToHttps(siteName: String): ByteBuf {
+    fun redirectHttpToHttps(siteName: String): ByteBuf {
         val method = "HTTP/1.1 301 Moved Permanently"
         val payload = "Redirecting to https://$siteName\n"
 
@@ -180,8 +157,7 @@ object HttpServiceUtils {
             payload,
         )
 
-        return Unpooled.wrappedBuffer(responseAsString.commonAsUtf8ToByteArray())
-
+        return Unpooled.copiedBuffer(responseAsString, CharsetUtil.UTF_8)
     }
 
 }

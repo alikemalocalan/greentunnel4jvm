@@ -26,22 +26,8 @@ Add the dependency:
 
 ```
 dependencies {
-	        implementation 'com.github.alikemalocalan:greentunnel4jvm:1.13-SNAPSHOT'
+	        implementation 'com.github.alikemalocalan:greentunnel4jvm:2.3-SNAPSHOT'
         }
-```
-
-
-and then:
-
-```bash
-./gradlew run
-```
-
-code:
-
-```kotlin
-com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer().newProxyService()
-
 ```
 
 ## GUI ScreenShot

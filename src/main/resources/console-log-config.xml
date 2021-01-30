@@ -5,7 +5,7 @@
             <pattern>%date | %-5level | %logger{1} | %msg%n</pattern>
         </encoder>
     </appender>
-    <logger name="com.github.alikemalocalan.greentunnel4jvm.HttpProxyServer" level="DEBUG"/>
+    <logger name="com.github.alikemalocalan.greentunnel4jvm.ProxyServer" level="DEBUG"/>
 
     <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>
