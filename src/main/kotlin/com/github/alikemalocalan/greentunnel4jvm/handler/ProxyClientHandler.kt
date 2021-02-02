@@ -55,19 +55,20 @@ class ProxyClientHandler : ChannelInboundHandlerAdapter() {
         ctx: ChannelHandlerContext,
         request: HttpRequest
     ): Optional<Channel> =
-        kotlin.runCatching { request.toInetSocketAddress() }.fold(onSuccess = { remoteAddress ->
-            val remoteFuture = bootstrap
-                .group(ctx.channel().eventLoop()) // use the same EventLoop
-                .handler(ProxyRemoteHandler(ctx, request))
-                .connect(remoteAddress)
+        kotlin.runCatching { request.toInetSocketAddress() }
+            .fold(onSuccess = { remoteAddress ->
+                val remoteFuture = bootstrap
+                    .group(ctx.channel().eventLoop()) // use the same EventLoop
+                    .handler(ProxyRemoteHandler(ctx, request))
+                    .connect(remoteAddress)
 
-            ctx.channel().config().isAutoRead = false // if remote connection has done, stop reading
-            remoteFuture.addListener {
-                ctx.channel().config().isAutoRead = true // connection is ready, enable AutoRead
-            }
+                ctx.channel().config().isAutoRead = false // if remote connection has done, stop reading
+                remoteFuture.addListener {
+                    ctx.channel().config().isAutoRead = true // connection is ready, enable AutoRead
+                }
 
-            return Optional.of(remoteFuture.channel())
-        }, onFailure = { return Optional.empty<Channel>() })
+                return Optional.of(remoteFuture.channel())
+            }, onFailure = { return Optional.empty<Channel>() })
 
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
