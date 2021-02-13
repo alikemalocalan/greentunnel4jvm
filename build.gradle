@@ -42,8 +42,8 @@ application {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
-    compile 'io.netty:netty-transport:4.1.58.Final'
-    compile 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.9.0'
+    compile 'io.netty:netty-transport:4.1.59.Final'
+    compile 'com.squareup.okhttp3:okhttp-dnsoverhttps:5.0.0-alpha.2'
     implementation 'ch.qos.logback:logback-classic:1.2.3'
 }
 

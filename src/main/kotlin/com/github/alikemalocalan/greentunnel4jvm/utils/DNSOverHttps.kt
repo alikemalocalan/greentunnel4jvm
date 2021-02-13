@@ -7,7 +7,7 @@ import okhttp3.dnsoverhttps.DnsOverHttps
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.net.UnknownHostException
+import java.util.*
 import java.util.concurrent.TimeUnit.SECONDS
 
 object DNSOverHttps {
@@ -33,14 +33,10 @@ object DNSOverHttps {
             .build()
 
     @JvmStatic
-    fun lookUp(address: String): String? {
-        lateinit var result: String
-        try {
-            result = dns.lookup(address).first().hostAddress
-        } catch (ex: UnknownHostException) {
-            logger.error("${ex.message} for : $address")
-            throw ex
-        }
-        return result
-    }
+    fun lookUp(address: String): Optional<String> =
+        kotlin.runCatching {
+            Optional.of(dns.lookup(address).first().hostAddress)
+        }.onFailure { logger.error("Ip address not found for : $address") }
+            .getOrDefault(Optional.empty())
+
 }

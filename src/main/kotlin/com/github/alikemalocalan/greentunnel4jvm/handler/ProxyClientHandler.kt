@@ -6,10 +6,8 @@ import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
 import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils.firstHttpsResponse
 import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.ByteBuf
-import io.netty.channel.Channel
-import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.ChannelInboundHandlerAdapter
-import io.netty.channel.ChannelOption
+import io.netty.buffer.Unpooled
+import io.netty.channel.*
 import io.netty.channel.socket.nio.NioSocketChannel
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -39,13 +37,14 @@ class ProxyClientHandler : ChannelInboundHandlerAdapter() {
                 HttpServiceUtils.splitAndWriteByteBuf(buf, remoteChannel)
             }
         } else // request take first time from the client
-            HttpServiceUtils.httpRequestFromByteBuf(buf).map { request ->
+            HttpServiceUtils.httpRequestFromByteBuf(buf).ifPresent { request ->
                 if (request.isHttps) {
                     remoteChannelOpt = sendRequestToRemoteChannel(ctx, request)
+                    if (remoteChannelOpt.isEmpty)
+                        ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
                 } else { //if http,force to https without any remote connection
                     val response = HttpServiceUtils.redirectHttpToHttps(request.host())
                     ctx.writeAndFlush(response)
-                    ctx.close()
                 }
 
             }
@@ -55,24 +54,24 @@ class ProxyClientHandler : ChannelInboundHandlerAdapter() {
         ctx: ChannelHandlerContext,
         request: HttpRequest
     ): Optional<Channel> =
-        kotlin.runCatching { request.toInetSocketAddress() }
-            .fold(onSuccess = { remoteAddress ->
-                val remoteFuture = bootstrap
-                    .group(ctx.channel().eventLoop()) // use the same EventLoop
-                    .handler(ProxyRemoteHandler(ctx, request))
-                    .connect(remoteAddress)
+        request.toInetSocketAddress().map { remoteAddress ->
+            val remoteFuture = bootstrap
+                .group(ctx.channel().eventLoop()) // use the same EventLoop
+                .handler(ProxyRemoteHandler(ctx, request))
+                .connect(remoteAddress)
 
-                ctx.channel().config().isAutoRead = false // if remote connection has done, stop reading
-                remoteFuture.addListener {
-                    ctx.channel().config().isAutoRead = true // connection is ready, enable AutoRead
-                }
+            ctx.channel().config().isAutoRead = false // if remote connection has done, stop reading
+            remoteFuture.addListener {
+                ctx.channel().config().isAutoRead = true // connection is ready, enable AutoRead
+            }
 
-                return Optional.of(remoteFuture.channel())
-            }, onFailure = { return Optional.empty<Channel>() })
-
+            remoteFuture.channel()
+        }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        ctx.close()
+        if (remoteChannelOpt.isPresent) {
+            remoteChannelOpt.get().close()
+        }
         remoteChannelOpt = Optional.empty()
         logger.error("Proxy Client Connection lost !!")
     }

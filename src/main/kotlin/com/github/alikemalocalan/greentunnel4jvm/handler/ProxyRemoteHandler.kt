@@ -25,4 +25,8 @@ class ProxyRemoteHandler(private val clientChannel: ChannelHandlerContext, priva
         logger.error("Website Connection error")
     }
 
+    override fun channelInactive(ctx: ChannelHandlerContext) {
+        ctx.close()
+    }
+
 }

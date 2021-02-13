@@ -5,7 +5,8 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.util.CharsetUtil
-import java.io.IOException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.net.DatagramSocket
 import java.net.ServerSocket
 import java.net.URI
@@ -14,6 +15,8 @@ import java.util.*
 
 
 object HttpServiceUtils {
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+
     const val defaultPort: Int = 8080
     private const val clientHelloMTU: Int = 100
 
@@ -104,37 +107,30 @@ object HttpServiceUtils {
             makeUpperRandomChar(header.first) to makeUpperRandomChar(header.second)
         else header
 
-    @Throws(IllegalArgumentException::class)
     @JvmStatic
-    fun availablePort(ipAsString: String): Int? {
+    fun availablePort(ipAsString: String): Int {
         val MIN_PORT_NUMBER = 1100
         val MAX_PORT_NUMBER = 49151
 
         val port: Int = ipAsString.toInt()
         if (port < MIN_PORT_NUMBER || port > MAX_PORT_NUMBER) {
-            throw IllegalArgumentException("Invalid start port: " + port)
-        }
+            logger.error("Invalid start port: $port")
+            return defaultPort
+        } else {
+            return kotlin.runCatching {
+                val ss = ServerSocket(port)
+                ss.reuseAddress = true
+                val ds = DatagramSocket(port)
+                ds.reuseAddress = true
 
-        var ss: ServerSocket? = null
-        var ds: DatagramSocket? = null
-        try {
-            ss = ServerSocket(port)
-            ss.reuseAddress = true
-            ds = DatagramSocket(port)
-            ds.reuseAddress = true
-            return port
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } finally {
-            ds?.close()
-            if (ss != null) {
-                try {
-                    ss.close()
-                } catch (e: IOException) {
-                }
-            }
+                ds.close()
+                ss.close()
+
+                port
+            }.onFailure {
+                logger.error("Port already in use: $port")
+            }.getOrDefault(defaultPort)
         }
-        return null
     }
 
     @JvmStatic

@@ -46,6 +46,8 @@ data class HttpRequest(
         if (isHttps) Unpooled.EMPTY_BUFFER
         else Unpooled.wrappedBuffer(toString().commonAsUtf8ToByteArray())
 
-    fun toInetSocketAddress() = InetSocketAddress(DNSOverHttps.lookUp(host()), port)
+    fun toInetSocketAddress(): Optional<InetSocketAddress> =
+        DNSOverHttps.lookUp(host())
+            .map { InetSocketAddress(it, port) }
 
 }
