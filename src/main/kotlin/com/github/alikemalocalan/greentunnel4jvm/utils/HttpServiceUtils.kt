@@ -150,7 +150,7 @@ object HttpServiceUtils {
             "%s\n%s\n%s",
             method,
             headerLines,
-            payload,
+            payload
         )
 
         return Unpooled.copiedBuffer(responseAsString, CharsetUtil.UTF_8)

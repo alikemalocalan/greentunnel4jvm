@@ -40,7 +40,7 @@ class ProxyClientHandler : ChannelInboundHandlerAdapter() {
             HttpServiceUtils.httpRequestFromByteBuf(buf).ifPresent { request ->
                 if (request.isHttps) {
                     remoteChannelOpt = sendRequestToRemoteChannel(ctx, request)
-                    if (remoteChannelOpt.isEmpty)
+                    if (!remoteChannelOpt.isPresent)
                         ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
                 } else { //if http,force to https without any remote connection
                     val response = HttpServiceUtils.redirectHttpToHttps(request.host())
