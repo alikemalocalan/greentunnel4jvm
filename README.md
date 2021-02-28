@@ -38,7 +38,7 @@ System proxy setting will be set automatically for only Mac and linux.
 It didn't implement for windows yet, you must set it manually for your system or firefox network setting.
 
 ## Download desktop executable app
-[greentunnel4jvm.jar](https://github.com/alikemalocalan/greentunnel4jvm/releases/download/2.6-SNAPSHOT/greentunnel4jvm.jar)
+[greentunnel4jvm.jar](https://github.com/alikemalocalan/greentunnel4jvm/releases/download/2.7.1-SNAPSHOT/greentunnel4jvm.jar)
 
 ## Thanks for motivation [0x01h](https://github.com/0x01h)
 
