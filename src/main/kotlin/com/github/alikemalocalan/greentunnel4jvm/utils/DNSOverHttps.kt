@@ -28,8 +28,8 @@ object DNSOverHttps {
 
     private val dns: DnsOverHttps =
         DnsOverHttps.Builder().client(client)
-            .url("https://doh.centraleu.pi-dns.com/dns-query".toHttpUrl()) // TODO add more option for here
-            .includeIPv6(false)
+            .url("https://doh.nl.ahadns.net/dns-query".toHttpUrl()) // TODO add more option for here
+            .post(true)
             .build()
 
     @JvmStatic
