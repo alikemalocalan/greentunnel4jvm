@@ -42,7 +42,7 @@ application {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
-    compile 'io.netty:netty-transport:4.1.59.Final'
+    compile 'io.netty:netty-transport:4.1.63.Final'
     compile 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.9.1'
     implementation 'ch.qos.logback:logback-classic:1.2.3'
 }
@@ -61,7 +61,7 @@ pom {
         licenses {
             license {
                 name 'The Apache Software License, Version 2.0'
-                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
                 distribution 'repo'
             }
         }

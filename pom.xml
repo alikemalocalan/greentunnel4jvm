@@ -4,12 +4,12 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.alikemalocalan</groupId>
   <artifactId>greentunnel4jvm</artifactId>
-  <version>2.7-SNAPSHOT</version>
+  <version>2.7.1-SNAPSHOT</version>
   <inceptionYear>2008</inceptionYear>
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -17,7 +17,7 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-transport</artifactId>
-      <version>4.1.59.Final</version>
+      <version>4.1.63.Final</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

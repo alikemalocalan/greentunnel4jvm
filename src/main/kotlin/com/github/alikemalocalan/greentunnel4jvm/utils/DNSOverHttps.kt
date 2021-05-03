@@ -28,7 +28,7 @@ object DNSOverHttps {
 
     private val dns: DnsOverHttps =
         DnsOverHttps.Builder().client(client)
-            .url("https://doh.nl.ahadns.net/dns-query".toHttpUrl()) // TODO add more option for here
+            .url("https://doh.applied-privacy.net/query".toHttpUrl()) // TODO add more option for here
             .post(true)
             .build()
 
