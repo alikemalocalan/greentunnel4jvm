@@ -40,9 +40,9 @@ application {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile 'io.netty:netty-transport:4.1.67.Final'
+    compile 'io.netty:netty-transport:4.1.68.Final'
     compile 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.9.1'
-    implementation 'ch.qos.logback:logback-classic:1.2.5'
+    implementation 'ch.qos.logback:logback-classic:1.2.6'
 }
 
 jar {
