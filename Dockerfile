@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk11:slim
+FROM adoptopenjdk:11
 
 COPY . /src
 WORKDIR /src
