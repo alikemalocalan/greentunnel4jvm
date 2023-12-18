@@ -40,7 +40,7 @@ application {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    api 'io.netty:netty-transport:4.1.101.Final'
+    api 'io.netty:netty-transport:4.1.104.Final'
     api 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.10.0'
     implementation 'ch.qos.logback:logback-classic:1.4.14'
 }
