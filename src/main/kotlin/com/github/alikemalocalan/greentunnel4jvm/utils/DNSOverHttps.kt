@@ -14,7 +14,7 @@ object DNSOverHttps {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     private val cache = Cache(
-        directory = File(System.getProperty("java.io.tmpdir"), "http_cache"),
+        directory = File.createTempFile("dnsOverHttps","http_cache"),
         maxSize = 50L * 1024L * 1024L // 10 MiB
     )
 
@@ -28,7 +28,7 @@ object DNSOverHttps {
 
     private val dns: DnsOverHttps =
         DnsOverHttps.Builder().client(client)
-            .url("https://doh.applied-privacy.net/query".toHttpUrl()) // TODO add more option for here
+            .url("https://doh.familyshield.opendns.com/dns-query".toHttpUrl()) // TODO add more option for here
             .post(true)
             .build()
 

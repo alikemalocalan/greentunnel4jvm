@@ -1,6 +1,6 @@
 package com.github.alikemalocalan.greentunnel4jvm
 
-import ch.qos.logback.classic.util.ContextInitializer
+import ch.qos.logback.classic.ClassicConstants
 import com.github.alikemalocalan.greentunnel4jvm.handler.ProxyClientHandler
 import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
 import io.netty.bootstrap.ServerBootstrap
@@ -19,12 +19,10 @@ class ProxyServer {
     private val workerGroup = NioEventLoopGroup(10)
     private val bossGroup = NioEventLoopGroup(10)
 
-    private val bootstrap: ServerBootstrap = ServerBootstrap()
-        .group(bossGroup, workerGroup)
-        .channel(NioServerSocketChannel::class.java)
-        .option(ChannelOption.SO_BACKLOG, 1024)
-        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
-        .childOption(ChannelOption.SO_KEEPALIVE, true)
+    private val bootstrap: ServerBootstrap =
+        ServerBootstrap().group(bossGroup, workerGroup).channel(NioServerSocketChannel::class.java)
+            .option(ChannelOption.SO_BACKLOG, 1024).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
+            .childOption(ChannelOption.SO_KEEPALIVE, true)
 
 
     fun createNettyServer(port: Int = 8080) {
@@ -36,12 +34,7 @@ class ProxyServer {
                         ProxyClientHandler()
                     )
                 }
-            })
-                .bind(port)
-                .sync()
-                .channel()
-                .closeFuture()
-                .sync()
+            }).bind(port).sync().channel().closeFuture().sync()
         } finally {
             stop()
         }
@@ -55,7 +48,7 @@ class ProxyServer {
 }
 
 fun main() {
-    System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "console-log-config.xml")
+    System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "console-log-config.xml")
     val port: Any? = System.getProperties()["proxy.port"]
 
     fun getPort() = port?.toString()?.toInt() ?: HttpServiceUtils.defaultPort
