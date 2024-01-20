@@ -37,9 +37,9 @@ object HttpServiceUtils {
     private fun parseHttpRequestFromByteBuf(reqAsString: String): HttpRequest {
         val firstLine = reqAsString.split("\r\n").first().split(" ")
         val method = firstLine[0]
-        val host = firstLine[1].toLowerCase()
+        val host = firstLine[1].lowercase()
         val protocolVersion = firstLine[2]
-        return if (method.toUpperCase().startsWith("CONNECT")) { // Https request
+        return if (method.lowercase().startsWith("CONNECT")) { // Https request
             val uri: URI = if (host.startsWith("https://")) URI(host) else URI("https://$host")
             HttpRequest(method, uri, port = 443, protocolVersion = protocolVersion, isHttps = true)
         } else { // Http request
@@ -92,7 +92,7 @@ object HttpServiceUtils {
     @JvmStatic
     fun makeUpperRandomChar(str: String): String {
         val char = str.elementAt(Random().nextInt(str.length))
-        return str.replace(char, char.toUpperCase())
+        return str.replace(char, char.uppercaseChar())
     }
 
     @JvmStatic

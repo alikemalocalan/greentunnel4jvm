@@ -45,14 +45,6 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.4.14'
 }
 
-jar {
-    from 'resources', {
-        into 'resources'
-    }
-    manifest {
-        attributes 'Main-Class': projectMainClassName
-    }
-}
 /* pom {
     project {
         inceptionYear '2008'
@@ -66,10 +58,6 @@ jar {
     }
 }.writeTo("pom.xml") */
 
-task copyResources(type: Copy) {
-    from "${projectDir}/src/main/resources"
-    into "${buildDir}/classes/kotlin/main/META-INF"
-}
 
 kotlin {
     jvmToolchain(11)
@@ -80,7 +68,6 @@ shadowJar {
     archiveClassifier.set('')
     archiveVersion.set('')
 }
-shadowJar.dependsOn copyResources
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     //noinspection GroovyAccessibility //alternatively replace this with archiveClassifier.set('...')

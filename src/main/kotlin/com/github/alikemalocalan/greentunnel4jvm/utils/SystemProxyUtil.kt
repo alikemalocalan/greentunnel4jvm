@@ -11,7 +11,7 @@ object SystemProxyUtil {
 
     @JvmStatic
     fun getSystemProxySetting(): ProxySetting {
-        val operatingSystem = System.getProperty("os.name").toLowerCase()
+        val operatingSystem = System.getProperty("os.name").lowercase()
         return when {
             operatingSystem.contains("win") -> WindowProxySetting()
             operatingSystem.contains("mac") -> DarwinProxySetting()
