@@ -3,10 +3,11 @@ buildscript {
     repositories {
         mavenCentral()
         maven { url 'https://plugins.gradle.org/m2/' }
+        gradlePluginPortal()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-       classpath 'com.github.johnrengelman:shadow:8.1.1'
+        classpath 'com.gradleup.shadow:shadow-gradle-plugin:8.3.0'
     }
 }
 
@@ -16,16 +17,9 @@ version = projectVersion
 allprojects {
     apply plugin: 'java'
     apply plugin: 'kotlin'
-//  apply plugin: 'maven'
     apply plugin: 'maven-publish'
     apply plugin: 'application'
-    apply plugin: "com.github.johnrengelman.shadow"
-
-    sourceCompatibility = 11
-    targetCompatibility = 11
-    compileKotlin.kotlinOptions.jvmTarget = "11"
-    compileTestKotlin.kotlinOptions.jvmTarget = "11"
-    compileJava.options.encoding = 'UTF-8'
+    apply plugin: 'com.gradleup.shadow'
 
     repositories {
         mavenCentral()
@@ -33,9 +27,12 @@ allprojects {
 
     }
 }
-
 application {
     mainClassName = projectMainClassName
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
 }
 
 dependencies {
@@ -45,22 +42,10 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.5.7'
 }
 
-/* pom {
-    project {
-        inceptionYear '2008'
-        licenses {
-            license {
-                name 'The Apache Software License, Version 2.0'
-                url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-                distribution 'repo'
-            }
-        }
-    }
-}.writeTo("pom.xml") */
-
-
 kotlin {
-    jvmToolchain(11)
+    compileKotlin.kotlinOptions.jvmTarget = JavaVersion.VERSION_11
+    compileTestKotlin.kotlinOptions.jvmTarget = JavaVersion.VERSION_11
+    compileJava.options.encoding = 'UTF-8'
 }
 
 shadowJar {
@@ -69,7 +54,8 @@ shadowJar {
     archiveVersion.set('')
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
+tasks.register('sourcesJar', Jar) {
+    dependsOn classes
     //noinspection GroovyAccessibility //alternatively replace this with archiveClassifier.set('...')
     archiveClassifier = 'sources'
     from sourceSets.main.allSource, 'build/generated/source/kapt/main', 'build/generated/source/kaptKotlin/main'
