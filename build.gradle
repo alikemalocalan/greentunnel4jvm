@@ -37,7 +37,7 @@ java {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    api 'io.netty:netty-transport:4.1.112.Final'
+    api 'io.netty:netty-transport:4.1.113.Final'
     api 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.12.0'
     implementation 'ch.qos.logback:logback-classic:1.5.7'
 }
