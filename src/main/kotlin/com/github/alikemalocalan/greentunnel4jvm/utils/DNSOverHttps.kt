@@ -7,6 +7,7 @@ import okhttp3.dnsoverhttps.DnsOverHttps
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.net.InetAddress
 import java.util.*
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -33,9 +34,9 @@ object DNSOverHttps {
             .build()
 
     @JvmStatic
-    fun lookUp(address: String): Optional<String> =
+    fun lookUp(address: String): Optional<InetAddress> =
         kotlin.runCatching {
-            Optional.of(dns.lookup(address).first().hostAddress)
+            Optional.of(dns.lookup(address).first())
         }.onFailure { ex -> logger.error("Ip address not found for : $address , error: ${ex.localizedMessage}") }
             .getOrDefault(Optional.empty())
 
