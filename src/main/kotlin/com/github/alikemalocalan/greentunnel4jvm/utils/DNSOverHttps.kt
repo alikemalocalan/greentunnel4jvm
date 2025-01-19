@@ -14,7 +14,7 @@ object DNSOverHttps {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     private val cache = Cache(
-        directory = File.createTempFile("dnsOverHttps","http_cache"),
+        directory = File.createTempFile("dnsOverHttps", "http_cache"),
         maxSize = 50L * 1024L * 1024L // 10 MiB
     )
 
@@ -36,7 +36,7 @@ object DNSOverHttps {
     fun lookUp(address: String): Optional<String> =
         kotlin.runCatching {
             Optional.of(dns.lookup(address).first().hostAddress)
-        }.onFailure { logger.error("Ip address not found for : $address") }
+        }.onFailure { ex -> logger.error("Ip address not found for : $address , error: ${ex.localizedMessage}") }
             .getOrDefault(Optional.empty())
 
 }

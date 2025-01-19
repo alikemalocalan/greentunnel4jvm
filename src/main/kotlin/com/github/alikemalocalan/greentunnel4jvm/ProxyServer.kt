@@ -6,6 +6,7 @@ import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
+import io.netty.channel.WriteBufferWaterMark
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
@@ -22,6 +23,7 @@ class ProxyServer {
     private val bootstrap: ServerBootstrap =
         ServerBootstrap().group(bossGroup, workerGroup).channel(NioServerSocketChannel::class.java)
             .option(ChannelOption.SO_BACKLOG, 1024).option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000)
+            .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, WriteBufferWaterMark(32 * 1024, 64 * 1024))
             .childOption(ChannelOption.SO_KEEPALIVE, true)
 
 
