@@ -1,38 +1,27 @@
-buildscript {
-
-    repositories {
-        mavenCentral()
-        maven { url 'https://plugins.gradle.org/m2/' }
-        gradlePluginPortal()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.gradleup.shadow:shadow-gradle-plugin:8.3.5'
-    }
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version "$kotlin_version"
+    id 'maven-publish'
+    id 'application'
+    id 'com.gradleup.shadow' version '8.3.5'
 }
 
 group = projectGroup
 version = projectVersion
 
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'kotlin'
-    apply plugin: 'maven-publish'
-    apply plugin: 'application'
-    apply plugin: 'com.gradleup.shadow'
-
-    repositories {
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
-
-    }
-}
 application {
     mainClass.set(projectMainClassName)
 }
 
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+    maven { url = 'https://jitpack.io' }
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 dependencies {
@@ -56,47 +45,10 @@ shadowJar {
 
 tasks.register('sourcesJar', Jar) {
     dependsOn classes
-    //noinspection GroovyAccessibility //alternatively replace this with archiveClassifier.set('...')
-    archiveClassifier = 'sources'
+    archiveClassifier.set("sources")
     from sourceSets.main.allSource, 'build/generated/source/kapt/main', 'build/generated/source/kaptKotlin/main'
 }
 publishing {
-    publications {
-        githubPublish(MavenPublication) {
-            artifactId projectName
-            version projectVersion
-
-            //from components.java
-            artifact(sourcesJar)
-            artifact(jar)
-
-            pom {
-                name = projectName
-                description = 'Green Tunnel Alternative for JVM Languages'
-                url = 'https://github.com/alikemalocalan/greentunnel4jvm'
-                licenses {
-                    license {
-                        name = 'The MIT License (MIT)'
-                        url = 'https://mit-license.org/'
-                        distribution = 'repo'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'alikemalocalan'
-                        name = 'Ali Kemal Öcalan'
-                        email = 'alikemalocalan@gmail.com'
-                        roles = ['owner', 'developer']
-                    }
-                }
-                scm {
-                    url = 'https://github.com/alikemalocalan/greentunnel4jvm'
-                    connection = 'scm:git:https://github.com/alikemalocalan/greentunnel4jvm.git'
-                    developerConnection = 'scm:git:ssh://git@github.com/alikemalocalan/greentunnel4jvm.git'
-                }
-            }
-        }
-    }
     repositories {
         maven {
             name = "GitHubPackages"
