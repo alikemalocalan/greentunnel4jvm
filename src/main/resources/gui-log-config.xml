@@ -6,7 +6,7 @@
         </encoder>
     </appender>
     <logger name="com.github.alikemalocalan.greentunnel4jvm.ProxyServer" level="INFO"/>
-    <appender name="GUI" class="com.github.alikemalocalan.greentunnel4jvm.log.Appender"/>
+    <appender name="GUI" class="com.github.alikemalocalan.greentunnel4jvm.logger.Appender"/>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
