@@ -24,8 +24,8 @@ object DNSOverHttps {
                 logger.error("Ip address not found for : $address")
                 Optional.empty()
             } else {
-                val record: Record = result[0]
-                val ip = InetAddress.getByName(record.rdataToString())
+                val record = result.first() as ARecord
+                val ip = InetAddress.getByName(record.address.hostAddress)
                 Optional.of(ip)
             }
         } catch (e: TextParseException) {
