@@ -4,10 +4,8 @@ import ch.qos.logback.classic.ClassicConstants
 import com.github.alikemalocalan.greentunnel4jvm.handler.ProxyClientHandler
 import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
 import io.netty.bootstrap.ServerBootstrap
-import io.netty.channel.ChannelInitializer
-import io.netty.channel.ChannelOption
-import io.netty.channel.WriteBufferWaterMark
-import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.*
+import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import org.slf4j.Logger
@@ -17,8 +15,8 @@ import org.slf4j.LoggerFactory
 class ProxyServer {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    private val workerGroup = NioEventLoopGroup(10)
-    private val bossGroup = NioEventLoopGroup(10)
+    private val workerGroup = MultiThreadIoEventLoopGroup(10,NioIoHandler.newFactory())
+    private val bossGroup: EventLoopGroup = MultiThreadIoEventLoopGroup(10,NioIoHandler.newFactory())
 
     private val bootstrap: ServerBootstrap =
         ServerBootstrap().group(bossGroup, workerGroup).channel(NioServerSocketChannel::class.java)
