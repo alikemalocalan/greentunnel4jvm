@@ -22,7 +22,7 @@ repositories {
 
 dependencies {
     api 'io.netty:netty-transport:4.1.119.Final'
-    api 'com.squareup.okhttp3:okhttp-dnsoverhttps:5.0.0-alpha.14'
+    api 'dnsjava:dnsjava:3.6.3'
     implementation 'ch.qos.logback:logback-classic:1.5.18'
 }
 

@@ -21,7 +21,7 @@ class ProxyRemoteHandler(private val clientChannel: ChannelHandlerContext, priva
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        logger.error("Website Connection error: ${request.host()}", cause)
+        logger.error("Remote Connection error: ${request.host()} , ${request.toInetSocketAddress()}", cause.message)
         ctx.close()
     }
 

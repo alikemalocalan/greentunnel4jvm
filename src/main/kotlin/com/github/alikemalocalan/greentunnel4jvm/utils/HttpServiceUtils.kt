@@ -167,11 +167,11 @@ object HttpServiceUtils {
         else header
 
     @JvmStatic
-    fun availablePort(ipAsString: String): Int {
+    fun availablePort(portAsString: String): Int {
         val MIN_PORT_NUMBER = 1100
         val MAX_PORT_NUMBER = 49151
 
-        val port: Int = ipAsString.toInt()
+        val port: Int = portAsString.toInt()
         if (port < MIN_PORT_NUMBER || port > MAX_PORT_NUMBER) {
             logger.error("Invalid start port: $port")
             return defaultPort

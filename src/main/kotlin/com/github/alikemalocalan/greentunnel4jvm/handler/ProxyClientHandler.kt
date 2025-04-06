@@ -75,12 +75,10 @@ class ProxyClientHandler : ChannelInboundHandlerAdapter() {
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         val remoteChannel = ctx.channel().attr(REMOTE_CHANNEL_KEY).get()
-        if (remoteChannel != null) {
-            logger.error("Proxy Client Connection lost for: ${remoteChannel.remoteAddress()} , error: ${cause.localizedMessage}")
-            remoteChannel.close()
-        } else {
-            logger.error("Proxy Client Connection lost: remote channel not present , error: ${cause.localizedMessage}")
-        }
+        remoteChannel?.close()?.addListener(ChannelFutureListener.CLOSE)
+
+        val remoteAddress = remoteChannel?.remoteAddress()?.toString() ?: "unknown"
+        logger.error("Client Connection error: $remoteAddress, error: ${cause.message}")
         ctx.close()
     }
 

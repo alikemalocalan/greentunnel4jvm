@@ -1,43 +1,39 @@
 package com.github.alikemalocalan.greentunnel4jvm.utils
 
-import okhttp3.Cache
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.OkHttpClient
-import okhttp3.dnsoverhttps.DnsOverHttps
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.File
+import org.xbill.DNS.*
 import java.net.InetAddress
+import java.time.Duration
 import java.util.*
-import java.util.concurrent.TimeUnit.SECONDS
 
 object DNSOverHttps {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
-
-    private val cache = Cache(
-        directory = File.createTempFile("dnsOverHttps", "http_cache"),
-        maxSize = 50L * 1024L * 1024L // 10 MiB
-    )
-
-    private val client: OkHttpClient =
-        OkHttpClient.Builder()
-            .cache(cache)
-            .connectTimeout(60, SECONDS)
-            .writeTimeout(60, SECONDS)
-            .readTimeout(60, SECONDS)
-            .build()
-
-    private val dns: DnsOverHttps =
-        DnsOverHttps.Builder().client(client)
-            .url("https://doh.familyshield.opendns.com/dns-query".toHttpUrl()) // TODO add more option for here
-            .post(true)
-            .build()
+    private const val DOH_URL: String = "https://dns.google/dns-query"
+    private val dohResolver = DohResolver(DOH_URL, 100, Duration.ofMinutes(2))
+    private val cache = Cache()
 
     @JvmStatic
-    fun lookUp(address: String): Optional<InetAddress> =
-        kotlin.runCatching {
-            Optional.of(dns.lookup(address).first())
-        }.onFailure { ex -> logger.error("Ip address not found for : $address , error: ${ex.localizedMessage}") }
-            .getOrDefault(Optional.empty())
-
+    fun lookUp(address: String): Optional<InetAddress> {
+        return try {
+            val lookup = Lookup(address, Type.A)
+            lookup.setResolver(dohResolver)
+            lookup.setCache(cache)
+            val result = lookup.run()
+            if (result.isNullOrEmpty()) {
+                logger.error("Ip address not found for : $address")
+                Optional.empty()
+            } else {
+                val record: Record = result[0]
+                val ip = InetAddress.getByName(record.rdataToString())
+                Optional.of(ip)
+            }
+        } catch (e: TextParseException) {
+            logger.error("Invalid address: $address , error: ${e.localizedMessage}")
+            Optional.empty()
+        } catch (e: Exception) {
+            logger.error("Error looking up address: $address , error: ${e.localizedMessage}")
+            Optional.empty()
+        }
+    }
 }
