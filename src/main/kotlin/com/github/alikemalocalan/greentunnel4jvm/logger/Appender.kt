@@ -6,19 +6,16 @@ import ch.qos.logback.core.AppenderBase
 import com.github.alikemalocalan.greentunnel4jvm.gui.Gui
 
 class Appender : AppenderBase<ILoggingEvent>() {
-    private lateinit var patternLayout: PatternLayout
+    private var patternLayout: PatternLayout? = null
 
     override fun start() {
-        patternLayout = PatternLayout().apply {
-            context = this@Appender.context
-            pattern = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-            start()
-        }
+        patternLayout = CustomPatternLayout(this@Appender.context)
+        patternLayout?.start()
         super.start()
     }
 
     override fun append(event: ILoggingEvent) {
-        val formattedMsg = patternLayout.doLayout(event)
-        Gui.mainForm.appendLogToGui(formattedMsg, event.level)
+        val formattedMsg = patternLayout?.doLayout(event) ?: return
+        Gui.mainForm.loggerText.appendLogToGui(formattedMsg, event.level.levelStr)
     }
 }

@@ -25,7 +25,7 @@ data class HttpRequest(
                 }
         }.orElseGet { "" }
 
-    fun path(): String =
+    private fun path(): String =
         if (uri.path.isNullOrBlank()) "/"
         else uri.path
 

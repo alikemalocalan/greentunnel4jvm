@@ -1,6 +1,5 @@
 package com.github.alikemalocalan.greentunnel4jvm
 
-import ch.qos.logback.classic.ClassicConstants
 import com.github.alikemalocalan.greentunnel4jvm.handler.ProxyClientHandler
 import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
 import io.netty.bootstrap.ServerBootstrap
@@ -48,7 +47,6 @@ class ProxyServer {
 }
 
 fun main() {
-    System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "console-log-config.xml")
     val port: Any? = System.getProperties()["proxy.port"]
 
     fun getPort() = port?.toString()?.toInt() ?: HttpServiceUtils.defaultPort

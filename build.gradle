@@ -5,7 +5,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '2.1.20'
     id 'maven-publish'
     id 'application'
-    id 'com.gradleup.shadow' version '8.3.6'
+    id 'com.gradleup.shadow' version '9.0.0-beta12'
 }
 
 group = projectGroup
@@ -33,7 +33,6 @@ java {
 
 kotlin {
     compilerOptions {
-        // https://docs.gradle.org/current/userguide/compatibility.html#kotlin
         apiVersion = KotlinVersion.KOTLIN_2_1
         jvmTarget = JvmTarget.JVM_17
     }
@@ -48,7 +47,7 @@ shadowJar {
 tasks.register('sourcesJar', Jar) {
     dependsOn classes
     archiveClassifier.set("sources")
-    from sourceSets.main.allSource, 'build/generated/source/kapt/main', 'build/generated/source/kaptKotlin/main'
+    from sourceSets.main.allSource
 }
 publishing {
     repositories {
