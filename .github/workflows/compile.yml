@@ -1,5 +1,7 @@
 name: Build Gradle
 on: [push]
+permissions:
+  contents: read
 jobs:
   gradle:
     strategy:
