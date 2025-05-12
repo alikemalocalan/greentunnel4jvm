@@ -35,23 +35,26 @@ class ProxyClientHandler : ChannelInboundHandlerAdapter() {
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         val buf: ByteBuf = msg as ByteBuf
-        val remoteChannel = ctx.channel().attr(REMOTE_CHANNEL_KEY).get()
+        val remoteChannel: Channel? = ctx.channel().attr(REMOTE_CHANNEL_KEY).get()
+        fun deleteRemoteChannel() {
+            ctx.channel().attr(REMOTE_CHANNEL_KEY).set(null)
+        }
 
-        if (remoteChannel != null) { // request take second time from the client
+        remoteChannel?.let { // request take second time from the client
             HttpServiceUtils.splitAndWriteByteBuf(buf, remoteChannel)
-        } else // request take first time from the client
-            HttpServiceUtils.httpRequestFromByteBuf(buf).ifPresent { request ->
+        } ?: HttpServiceUtils.httpRequestFromByteBuf(buf)
+            .ifPresent { request ->  // request take first time from the client
                 val remoteAddressOpt = request.toInetSocketAddress()
                 if (remoteAddressOpt.isEmpty) {
                     // DNSOverHttps blocked host
                     ctx.writeAndFlush(simple200Response()).addListener(ChannelFutureListener.CLOSE)
                 } else
                     if (request.isHttps) {
-                        val remoteChannel: Channel = sendRequestToRemoteChannel(ctx, request, remoteAddressOpt.get())
-                        ctx.channel().attr(REMOTE_CHANNEL_KEY).set(remoteChannel)
+                        sendRequestToRemoteChannel(ctx, request, remoteAddressOpt.get())
                     } else { //if http,force to https without any remote connection
                         val response = HttpServiceUtils.redirectHttpToHttps(request.host())
                         ctx.writeAndFlush(response)
+                        deleteRemoteChannel()
                     }
             }
     }
@@ -67,24 +70,40 @@ class ProxyClientHandler : ChannelInboundHandlerAdapter() {
             .connect(remoteAddress)
 
         ctx.channel().config().isAutoRead = false // if remote connection has done, stop reading
-        remoteFuture.addListener {
-            ctx.channel().config().isAutoRead = true // connection is ready, enable AutoRead
+        val remoteChannel = remoteFuture.channel()
+        if (remoteChannel.isOpen) {
+            remoteFuture.addListener { future ->
+                if (future.isSuccess) {
+                    ctx.channel().config().isAutoRead = true
+                } else {
+                    logger.error("Connection failed to ${remoteAddress.hostName}:${remoteAddress.port}: ${future.cause()?.message}")
+                }
+            }
+            ctx.channel().attr(REMOTE_CHANNEL_KEY).set(remoteChannel)
+            return remoteChannel
+        } else {
+            logger.error("Remote channel is not open:${request.uri} , ${remoteAddress.hostName}:${remoteAddress.port}")
+            ctx.writeAndFlush(simple200Response()).addListener(ChannelFutureListener.CLOSE)
+            ctx.channel().attr(REMOTE_CHANNEL_KEY).set(null)
+            remoteChannel.closeFuture().addListener(ChannelFutureListener.CLOSE)
+            return ctx.channel()
         }
-        return remoteFuture.channel()
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         val remoteChannel = ctx.channel().attr(REMOTE_CHANNEL_KEY).get()
-        remoteChannel?.close()?.addListener(ChannelFutureListener.CLOSE)
-
         val remoteAddress = remoteChannel?.remoteAddress()?.toString() ?: "unknown"
+
         logger.error("Client Connection error: $remoteAddress, error: ${cause.message}")
+        remoteChannel?.close()?.addListener(ChannelFutureListener.CLOSE)
+        ctx.channel()?.attr(REMOTE_CHANNEL_KEY)?.set(null)
         ctx.close()
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext?) {
         val remoteChannel = ctx?.channel()?.attr(REMOTE_CHANNEL_KEY)?.get()
         remoteChannel?.close()
+        ctx?.channel()?.attr(REMOTE_CHANNEL_KEY)?.set(null)
     }
 
 }

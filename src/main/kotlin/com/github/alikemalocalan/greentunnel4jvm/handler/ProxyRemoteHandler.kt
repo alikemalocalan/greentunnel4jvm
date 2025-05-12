@@ -6,6 +6,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.jvm.optionals.getOrDefault
 
 
 class ProxyRemoteHandler(private val clientChannel: ChannelHandlerContext, private val request: HttpRequest) :
@@ -21,7 +22,11 @@ class ProxyRemoteHandler(private val clientChannel: ChannelHandlerContext, priva
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        logger.error("Remote Connection error: ${request.host()} , ${request.toInetSocketAddress()}", cause.message)
+        logger.error(
+            "Remote Connection error: ${request.host()} , ${
+                request.toInetSocketAddress().map { it.toString() }.getOrDefault("")
+            }", cause.message
+        )
         ctx.close()
     }
 

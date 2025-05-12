@@ -2,6 +2,7 @@ package com.github.alikemalocalan.greentunnel4jvm.gui
 
 import java.awt.Color
 import javax.swing.JTextPane
+import javax.swing.SwingUtilities
 import javax.swing.text.*
 
 class LoggerTextPanel : JTextPane() {
@@ -65,11 +66,15 @@ class LoggerTextPanel : JTextPane() {
                 else -> RESTO_ATT
             }
 
-            this.document.insertString(this.document.length, logMessage, att)
+            SwingUtilities.invokeLater {
+                this.document.insertString(this.document.length, logMessage, att)
+            }
         } catch (e: BadLocationException) {
             e.printStackTrace()
         }
-        this.caretPosition = this.document.length
+        SwingUtilities.invokeLater {
+            this.caretPosition = this.document.length
+        }
     }
 
     @Throws(BadLocationException::class)
@@ -91,16 +96,18 @@ class LoggerTextPanel : JTextPane() {
         if (end < start) {
             throw IllegalArgumentException("end before start")
         }
-        val doc: Document = textPane.document
-        try {
-            if (doc is AbstractDocument) {
-                doc.replace(start, end - start, str, null)
-            } else {
-                doc.remove(start, end - start)
-                doc.insertString(start, str, null)
+        SwingUtilities.invokeLater {
+            val doc: Document = textPane.document
+            try {
+                if (doc is AbstractDocument) {
+                    doc.replace(start, end - start, str, null)
+                } else {
+                    doc.remove(start, end - start)
+                    doc.insertString(start, str, null)
+                }
+            } catch (e: BadLocationException) {
+                throw IllegalArgumentException(e.message)
             }
-        } catch (e: BadLocationException) {
-            throw IllegalArgumentException(e.message)
         }
     }
 

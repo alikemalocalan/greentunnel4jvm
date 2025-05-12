@@ -4,6 +4,7 @@ import ch.qos.logback.classic.PatternLayout
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.AppenderBase
 import com.github.alikemalocalan.greentunnel4jvm.gui.Gui
+import javax.swing.SwingUtilities
 
 class Appender : AppenderBase<ILoggingEvent>() {
     private var patternLayout: PatternLayout? = null
@@ -16,6 +17,8 @@ class Appender : AppenderBase<ILoggingEvent>() {
 
     override fun append(event: ILoggingEvent) {
         val formattedMsg = patternLayout?.doLayout(event) ?: return
-        Gui.mainForm.loggerText.appendLogToGui(formattedMsg, event.level.levelStr)
+        SwingUtilities.invokeLater {
+            Gui.mainForm.loggerText.appendLogToGui(formattedMsg, event.level.levelStr)
+        }
     }
 }
