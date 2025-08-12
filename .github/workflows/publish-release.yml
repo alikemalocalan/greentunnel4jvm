@@ -1,4 +1,4 @@
-name: Publish release
+name: Publish to GitHub Packages
 
 on:
   release:
@@ -6,13 +6,14 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   publish-release:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout latest code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -21,7 +22,7 @@ jobs:
           distribution: zulu
           java-version: 17
 
-      - name: Publish artifact
+      - name: Publish to GitHub Packages
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
