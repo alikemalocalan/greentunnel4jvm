@@ -90,8 +90,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/alikemalocalan/greentunnel4jvm")
             credentials {
-                username = System.getenv("ACTOR")
-                password = System.getenv("TOKEN")
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }
