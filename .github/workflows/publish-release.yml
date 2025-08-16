@@ -2,7 +2,7 @@ name: Publish to GitHub Packages
 
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 permissions:
   contents: write
@@ -21,6 +21,11 @@ jobs:
         with:
           distribution: zulu
           java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: current
 
       - name: Publish to GitHub Packages
         env:
