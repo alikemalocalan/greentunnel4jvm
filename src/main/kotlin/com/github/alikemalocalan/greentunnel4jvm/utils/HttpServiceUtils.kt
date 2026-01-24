@@ -23,11 +23,11 @@ object HttpServiceUtils {
 
     @JvmStatic
     fun firstHttpsResponse(): ByteBuf =
-        Unpooled.copiedBuffer("HTTP/1.1 200 Connection Established\r\n\r\n", CharsetUtil.UTF_8)
+        Unpooled.copiedBuffer("HTTP/2 200 Connection Established\r\n\r\n", CharsetUtil.UTF_8)
 
     @JvmStatic
     fun simple200Response(): ByteBuf =
-        Unpooled.copiedBuffer("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n", CharsetUtil.UTF_8)
+        Unpooled.copiedBuffer("HTTP/2 200 OK\r\ncontent-length: 0\r\n\r\n", CharsetUtil.UTF_8)
 
     @JvmStatic
     fun httpRequestFromByteBuf(buf: ByteBuf): Optional<HttpRequest> {
@@ -119,7 +119,13 @@ object HttpServiceUtils {
 
     // Randomize User-Agent to make it appear more natural
     private fun randomizeUserAgent(userAgent: String): String {
-        val randomUaParts = listOf("Mozilla/5.0", "AppleWebKit/537.36", "Chrome/89.0", "Safari/537.36")
+        val randomUaParts = listOf(
+            "Mozilla/5.0",
+            "AppleWebKit/537.36",
+            "Chrome/120.0.0.0",
+            "Safari/537.36",
+            "Edg/120.0.0.0"
+        )
         return randomUaParts.joinToString(" ") + " " + userAgent.split(" ").drop(1).joinToString(" ")
     }
 
@@ -194,7 +200,7 @@ object HttpServiceUtils {
 
     @JvmStatic
     fun redirectHttpToHttps(siteName: String): ByteBuf {
-        val method = "HTTP/1.1 301 Moved Permanently"
+        val method = "HTTP/2 301 Moved Permanently"
         val payload = "Redirecting to https://$siteName\n"
 
         val headerLines: String = listOf(
