@@ -23,7 +23,7 @@ repositories {
 dependencies {
     api 'io.netty:netty-transport:4.2.10.Final'
     api 'dnsjava:dnsjava:3.6.4'
-    implementation 'ch.qos.logback:logback-classic:1.5.28'
+    implementation 'ch.qos.logback:logback-classic:1.5.32'
 }
 
 java {
