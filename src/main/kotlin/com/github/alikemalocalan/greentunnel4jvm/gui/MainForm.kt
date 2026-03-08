@@ -14,6 +14,8 @@ class MainForm : JFrame() {
     private val portLabel = JLabel("Proxy Port :")
     private val button = JButton("Start")
     private val portInputField = JTextField("8080", 10)
+    private val WINDOW_WIDTH = 600
+    private val WINDOW_HEIGHT = 400
 
     @Volatile
     private var serverThread: ServerThread? = null
@@ -31,7 +33,7 @@ class MainForm : JFrame() {
             title = "Greentunnel Proxy"
             defaultCloseOperation = EXIT_ON_CLOSE
             isResizable = true
-            size = Dimension(600, 400)
+            size = Dimension(WINDOW_WIDTH, WINDOW_HEIGHT)
             isVisible = true
             setLocationRelativeTo(null)
         }
