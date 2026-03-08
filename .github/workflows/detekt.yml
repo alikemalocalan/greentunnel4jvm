@@ -31,6 +31,8 @@ on:
 
 permissions:
   contents: read
+  security-events: write  # Code scanning sonuçlarını yüklemek için gerekli
+
 
 env:
   # Release tag associated with version of Detekt to be installed
