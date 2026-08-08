@@ -5,6 +5,7 @@ import com.github.alikemalocalan.greentunnel4jvm.models.HttpRequest
 import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
 import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils.firstHttpsResponse
 import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils.simple200Response
+import com.github.alikemalocalan.greentunnel4jvm.utils.TlsUtils
 import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.ByteBuf
 import io.netty.channel.*
@@ -13,7 +14,6 @@ import io.netty.util.AttributeKey
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.InetSocketAddress
-
 
 class ProxyClientHandler : ChannelInboundHandlerAdapter() {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -48,7 +48,7 @@ class ProxyClientHandler : ChannelInboundHandlerAdapter() {
         }
 
         remoteChannel?.let { // request take second time from the client
-            HttpServiceUtils.splitAndWriteByteBuf(buf, remoteChannel)
+            TlsUtils.splitAtSni(buf, remoteChannel)
         } ?: HttpServiceUtils.httpRequestFromByteBuf(buf)
             .ifPresent { request ->  // request take first time from the client
                 val remoteAddressOpt = request.toInetSocketAddress()

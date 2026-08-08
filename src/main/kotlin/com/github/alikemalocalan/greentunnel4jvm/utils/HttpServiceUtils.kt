@@ -74,7 +74,7 @@ object HttpServiceUtils {
                     port = port,
                     isHttps = false,
                     headers = Optional.of(headers),
-                    payload = Optional.empty() // No body for HEAD requests
+                    payload = Optional.empty()
                 )
             }
 
@@ -85,7 +85,6 @@ object HttpServiceUtils {
             }
 
             else -> {
-                // Handle HTTP request
                 val uri = if (host.startsWith("http://")) URI(host) else URI("http://$host")
                 val port: Int = if (uri.port == -1) 80 else uri.port
                 val headers = extractHeaders(reqAsString)
@@ -105,29 +104,28 @@ object HttpServiceUtils {
     }
 
     private fun extractHeaders(reqAsString: String): List<Pair<String, String>> {
-        val mainPart = reqAsString.split("\r\n\r\n") // Until payload
-        val headerLines = mainPart.first().split("\r\n").drop(1) // For headers
+        val mainPart = reqAsString.split("\r\n\r\n")
+        val headerLines = mainPart.first().split("\r\n").drop(1)
 
         return headerLines
             .asSequence()
             .map { h ->
                 val arr = h.split(":", limit = 2)
-                if (arr.size == 2) arr[0] to arr[1] else "" to "" // Handle invalid headers
+                if (arr.size == 2) arr[0] to arr[1] else "" to ""
             }
             .distinct()
             .filterNot { h -> h.first in PROXY_HEADERS_TO_REMOVE }
             .map(this::addKeepAliveHeaders)
             .map(this::mixHostLetterCase)
-            .map(this::randomizeHeaderValues) // Add more complexity here
+            .map(this::randomizeHeaderValues)
             .toList()
     }
 
-    // New function to add more randomization to header values
     private fun randomizeHeaderValues(header: Pair<String, String>): Pair<String, String> {
         return when (header.first) {
-            "User-Agent" -> header.copy(second = randomizeUserAgent(header.second)) // Customize User-Agent randomly
-            "Accept-Encoding" -> header.copy(second = "gzip, deflate") // Mask encoding to a standard one
-            else -> header // For other headers, keep them unchanged
+            "User-Agent" -> header.copy(second = randomizeUserAgent(header.second))
+            "Accept-Encoding" -> header.copy(second = "gzip, deflate")
+            else -> header
         }
     }
 

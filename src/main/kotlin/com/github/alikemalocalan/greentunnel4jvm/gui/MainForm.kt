@@ -58,13 +58,11 @@ class MainForm : JFrame() {
                     button.text = "Start"
                 }
             }
-        } catch (ex: IllegalArgumentException) {
+        } catch (_: IllegalArgumentException) {
             SwingUtilities.invokeLater {
                 JOptionPane.showMessageDialog(null, "Enter valid Port number !!!")
                 portInputField.text = "8080"
             }
-        } catch (ex: Exception) {
-            ex.printStackTrace()
         }
     }
 }

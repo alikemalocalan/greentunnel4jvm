@@ -13,6 +13,8 @@ About More : [GreenTunnel](https://github.com/SadeghHayeri/GreenTunnel)
 ### Core Anti-Censorship
 - **DNS over HTTPS (DoH)** — DNS queries encrypted via Google DoH to bypass DNS-based censorship
 - **TLS Client Hello Fragmentation** — Splits SNI field into small chunks to evade DPI inspection
+- **SNI-Targeted Fragmentation & Timing Delay** — Locates SNI in ClientHello binary structure and splits hostname at midpoint with random 1-30ms timing delay to evade DPI reassembly (new feature for Russian users but not tested)
+- **TLS Record Layer Fragmentation** — Splits ClientHello across multiple Layer 5 TLS Records in addition to Layer 4 TCP segmentation (new feature for Russian users but not tested)
 - **Host Header Case-Mixing** — Randomizes letter case in Host header (`test.com` → `tEsT.cOm`) to confuse DPI
 - **HTTP → HTTPS Redirect** — Automatically redirects plaintext HTTP requests to HTTPS
 - **Premature 200 Response** — Prevents client-side domain leaking by responding before CONNECT parsing

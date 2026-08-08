@@ -17,8 +17,4 @@ class ServerThread(name: String, private val port: Int) : Thread(name) {
         serverBuilder.stop()
         running.set(false)
     }
-
-    fun isRunning(): Boolean {
-        return running.get()
-    }
 }
