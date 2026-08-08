@@ -4,6 +4,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.xbill.DNS.*
 import java.net.InetAddress
+import java.net.UnknownHostException
 import java.time.Duration
 import java.util.*
 
@@ -11,7 +12,11 @@ object DNSOverHttps {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private const val DOH_URL: String = "https://dns.google/dns-query"
     private val dohResolver = DohResolver(DOH_URL, 100, Duration.ofMinutes(2))
-    private val cache = Cache()
+
+    private val cache = Cache().apply {
+        maxEntries = 500
+        maxNCache = 300
+    }
 
     @JvmStatic
     fun lookUp(address: String): Optional<InetAddress> {
@@ -31,7 +36,7 @@ object DNSOverHttps {
         } catch (e: TextParseException) {
             logger.error("Invalid address: $address , error: ${e.localizedMessage}")
             Optional.empty()
-        } catch (e: Exception) {
+        } catch (e: UnknownHostException) {
             logger.error("Error looking up address: $address , error: ${e.localizedMessage}")
             Optional.empty()
         }

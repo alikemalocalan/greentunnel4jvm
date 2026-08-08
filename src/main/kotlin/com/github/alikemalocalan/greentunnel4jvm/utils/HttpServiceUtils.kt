@@ -19,7 +19,22 @@ object HttpServiceUtils {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     const val defaultPort: Int = 8080
-    private const val clientHelloMTU: Int = 100
+    private const val MTU_MIN: Int = 40
+    private const val MTU_MAX: Int = 160
+
+    private fun randomMTU(): Int = Random.nextInt(MTU_MIN, MTU_MAX + 1)
+
+    private val PROXY_HEADERS_TO_REMOVE = setOf(
+        "Client-IP",
+        "X-Forwarded-For",
+        "X-Forwarded-Host",
+        "X-Forwarded-Proto",
+        "X-Real-IP",
+        "Forwarded",
+        "Via",
+        "Proxy-Authorization",
+        "Proxy-Connection"
+    )
 
     @JvmStatic
     fun firstHttpsResponse(): ByteBuf =
@@ -96,12 +111,11 @@ object HttpServiceUtils {
         return headerLines
             .asSequence()
             .map { h ->
-                val arr = h.split(":")
+                val arr = h.split(":", limit = 2)
                 if (arr.size == 2) arr[0] to arr[1] else "" to "" // Handle invalid headers
             }
             .distinct()
-            .filterNot { h -> h.first == "Client-IP" || h.second == "X-Forwarded-For" }
-            .filterNot { k -> k.first == "Via" }
+            .filterNot { h -> h.first in PROXY_HEADERS_TO_REMOVE }
             .map(this::addKeepAliveHeaders)
             .map(this::mixHostLetterCase)
             .map(this::randomizeHeaderValues) // Add more complexity here
@@ -117,16 +131,25 @@ object HttpServiceUtils {
         }
     }
 
-    // Randomize User-Agent to make it appear more natural
+    private val USER_AGENT_POOL = listOf(
+        // Windows - Chrome
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        // macOS - Chrome
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        // Windows - Firefox
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
+        // macOS - Safari
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_7_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.2 Safari/605.1.15",
+        // Windows - Edge
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+        // Linux - Chrome
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        // Linux - Firefox
+        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:133.0) Gecko/20100101 Firefox/133.0"
+    )
+
     private fun randomizeUserAgent(userAgent: String): String {
-        val randomUaParts = listOf(
-            "Mozilla/5.0",
-            "AppleWebKit/537.36",
-            "Chrome/120.0.0.0",
-            "Safari/537.36",
-            "Edg/120.0.0.0"
-        )
-        return randomUaParts.joinToString(" ") + " " + userAgent.split(" ").drop(1).joinToString(" ")
+        return USER_AGENT_POOL[Random.nextInt(USER_AGENT_POOL.size)]
     }
 
     private fun extractPayload(reqAsString: String): String {
@@ -136,7 +159,8 @@ object HttpServiceUtils {
 
     tailrec fun splitAndWriteByteBuf(buf: ByteBuf, remoteChannel: Channel) {
         if (buf.isReadable) {
-            val bufSize: Int = if (buf.readableBytes() > clientHelloMTU) clientHelloMTU else buf.readableBytes()
+            val mtu = randomMTU()
+            val bufSize: Int = if (buf.readableBytes() > mtu) mtu else buf.readableBytes()
             remoteChannel.writeAndFlush(buf.readSlice(bufSize).retain())
             splitAndWriteByteBuf(buf, remoteChannel)
         } else buf.release()
@@ -207,7 +231,6 @@ object HttpServiceUtils {
             "Content-Type: text/plain",
             "Connection: keep-alive",
             "Content-Length: ${payload.length}",
-            "Server: greenTunnel",
             "Location: https://$siteName"
         ).joinToString(separator = "\r\n", postfix = "\r\n")
 
