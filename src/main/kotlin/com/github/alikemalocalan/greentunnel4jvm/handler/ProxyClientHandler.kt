@@ -18,15 +18,22 @@ import java.net.InetSocketAddress
 class ProxyClientHandler : ChannelInboundHandlerAdapter() {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    private val bootstrap: Bootstrap = Bootstrap()
-        .channel(NioSocketChannel::class.java)
-        .option(ChannelOption.SINGLE_EVENTEXECUTOR_PER_GROUP, false)
-        .option(ChannelOption.TCP_NODELAY, true)
-        .option(ChannelOption.SO_KEEPALIVE, true)
-        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
-
     companion object {
-        private val REMOTE_CHANNEL_KEY: AttributeKey<Channel> = AttributeKey.valueOf("remoteChannel")
+        private val REMOTE_CHANNEL_KEY = AttributeKey.valueOf<Channel>("remoteChannel")
+
+        @Volatile
+        private var sharedBootstrap: Bootstrap? = null
+
+        private fun getBootstrap(): Bootstrap {
+            return sharedBootstrap ?: synchronized(this) {
+                sharedBootstrap ?: Bootstrap()
+                    .channel(NioSocketChannel::class.java)
+                    .option(ChannelOption.TCP_NODELAY, true)
+                    .option(ChannelOption.SO_KEEPALIVE, true)
+                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
+                    .also { sharedBootstrap = it }
+            }
+        }
     }
 
     override fun channelActive(ctx: ChannelHandlerContext) {
@@ -64,30 +71,26 @@ class ProxyClientHandler : ChannelInboundHandlerAdapter() {
         request: HttpRequest,
         remoteAddress: InetSocketAddress
     ): Channel {
-        val remoteFuture = bootstrap
-            .group(ctx.channel().eventLoop()) // use the same EventLoop
+        ctx.channel().config().isAutoRead = false
+
+        val remoteFuture = getBootstrap().clone()
+            .group(ctx.channel().eventLoop())
             .handler(ProxyRemoteHandler(ctx, request))
             .connect(remoteAddress)
 
-        ctx.channel().config().isAutoRead = false // if remote connection has done, stop reading
-        val remoteChannel = remoteFuture.channel()
-        if (remoteChannel.isOpen) {
-            remoteFuture.addListener { future ->
-                if (future.isSuccess) {
-                    ctx.channel().config().isAutoRead = true
-                } else {
-                    logger.error("Connection failed to ${remoteAddress.hostName}:${remoteAddress.port}: ${future.cause()?.message}")
-                }
+        remoteFuture.addListener(ChannelFutureListener { future ->
+            if (future.isSuccess) {
+                val remoteChannel = future.channel()
+                ctx.channel().attr(REMOTE_CHANNEL_KEY).set(remoteChannel)
+                ctx.channel().config().isAutoRead = true
+                logger.debug("Successfully connected to remote: {}", remoteAddress)
+            } else {
+                ctx.channel().config().isAutoRead = true
+                logger.error("Connection failed to ${remoteAddress.hostName}:${remoteAddress.port}: ${future.cause()?.message}")
+                ctx.close()
             }
-            ctx.channel().attr(REMOTE_CHANNEL_KEY).set(remoteChannel)
-            return remoteChannel
-        } else {
-            logger.error("Remote channel is not open:${request.uri} , ${remoteAddress.hostName}:${remoteAddress.port}")
-            ctx.writeAndFlush(simple200Response()).addListener(ChannelFutureListener.CLOSE)
-            ctx.channel().attr(REMOTE_CHANNEL_KEY).set(null)
-            remoteChannel.closeFuture().addListener(ChannelFutureListener.CLOSE)
-            return ctx.channel()
-        }
+        })
+        return remoteFuture.channel()
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
@@ -100,10 +103,15 @@ class ProxyClientHandler : ChannelInboundHandlerAdapter() {
         ctx.close()
     }
 
-    override fun channelInactive(ctx: ChannelHandlerContext?) {
-        val remoteChannel = ctx?.channel()?.attr(REMOTE_CHANNEL_KEY)?.get()
-        remoteChannel?.close()
-        ctx?.channel()?.attr(REMOTE_CHANNEL_KEY)?.set(null)
+    override fun channelInactive(ctx: ChannelHandlerContext) {
+        val remoteChannel = ctx.channel().attr(REMOTE_CHANNEL_KEY).get()
+        remoteChannel?.let {
+            if (it.isOpen) {
+                it.close()
+            }
+            ctx.channel().attr(REMOTE_CHANNEL_KEY).set(null)
+        }
+        ctx.fireChannelInactive()
     }
 
 }
