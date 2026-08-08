@@ -13,8 +13,9 @@ Más información : [GreenTunnel](https://github.com/SadeghHayeri/GreenTunnel)
 ### Anti-Censura Principal
 - **DNS sobre HTTPS (DoH)** — Consultas DNS cifradas a través de Google DoH para evadir la censura basada en DNS
 - **Fragmentación de TLS Client Hello** — Divide el campo SNI en fragmentos pequeños para evadir la inspección DPI
-- **Fragmentación dirigida a SNI y retardo de tiempo** — Localiza el SNI en la estructura binaria de ClientHello y divide el nombre de host en el punto medio con un retardo aleatorio de 1-30 ms para evadir el reensamblaje del DPI (new feature for russian users but not tested)
-- **Fragmentación en la capa de registros TLS** — Divide ClientHello en múltiples registros TLS de Capa 5 además de la segmentación TCP de Capa 4 (new feature for russian users but not tested)
+- **Fragmentación dirigida a SNI y retardo de tiempo** — Localiza el SNI en la estructura binaria de ClientHello y divide el nombre de host en el punto medio con un retardo aleatorio de 1-30 ms para evadir el reensamblaje del DPI (new feature for Russian users but not tested)
+- **Fragmentación en la capa de registros TLS** — Divide ClientHello en múltiples registros TLS de Capa 5 además de la segmentación TCP de Capa 4 (new feature for Russian users but not tested)
+- **Modo Agresivo (Relleno de conexión TLS)** — Relleno opcional del ClientHello TLS (RFC 7685) a tamaños estándar para ofuscar el análisis de huellas por tamaño de paquete (new feature for Russian users but not tested)
 - **Mezcla de mayúsculas/minúsculas en el encabezado Host** — Aleatoriza las letras del encabezado Host (`test.com` → `tEsT.cOm`) para confundir al DPI
 - **Redirección HTTP → HTTPS** — Redirige automáticamente las solicitudes HTTP en texto plano a HTTPS
 - **Respuesta 200 anticipada** — Previene la filtración de dominios del lado del cliente respondiendo antes del análisis CONNECT

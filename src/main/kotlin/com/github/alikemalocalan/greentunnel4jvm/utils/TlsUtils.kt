@@ -48,6 +48,12 @@ object TlsUtils {
                 && (buf.getByte(readerIndex + 5).toInt() and 0xFF) == HANDSHAKE_TYPE_CLIENT_HELLO
     }
 
+    fun isClientHello(data: ByteArray): Boolean {
+        if (data.size < 6) return false
+        return (data[0].toInt() and 0xFF) == TLS_CONTENT_TYPE_HANDSHAKE
+                && (data[5].toInt() and 0xFF) == HANDSHAKE_TYPE_CLIENT_HELLO
+    }
+
     /**
      * Finds the SNI hostname within a TLS ClientHello byte array.
      *
@@ -155,6 +161,7 @@ object TlsUtils {
     fun splitAtSni(
         buf: ByteBuf,
         channel: Channel,
+        isAggressiveMode: Boolean = false,
         delayMs: LongRange = 1L..30L
     ) {
         val readable = buf.readableBytes()
@@ -164,8 +171,14 @@ object TlsUtils {
         }
 
         // Read bytes for parsing without advancing reader index
-        val bytes = ByteArray(readable)
-        buf.getBytes(buf.readerIndex(), bytes)
+        val rawBytes = ByteArray(readable)
+        buf.getBytes(buf.readerIndex(), rawBytes)
+
+        val bytes = if (isAggressiveMode && isClientHello(rawBytes)) {
+            ClientHelloPadder.pad(rawBytes)
+        } else {
+            rawBytes
+        }
 
         val sniInfo = findSniInfo(bytes)
 
@@ -175,7 +188,7 @@ object TlsUtils {
             val cutInSni = Random.nextInt(3, maxCut + 1)
             val splitPoint = sniInfo.hostnameOffset + cutInSni
 
-            if (splitPoint > TLS_RECORD_HEADER_SIZE && splitPoint < readable) {
+            if (splitPoint > TLS_RECORD_HEADER_SIZE && splitPoint < bytes.size) {
                 // Release original buffer — we create new ones from byte arrays
                 buf.release()
 
@@ -198,15 +211,17 @@ object TlsUtils {
 
                 logger.debug(
                     "DPI bypass applied: SNI split at byte {}, delay={}ms, {} TLS records, {} total bytes",
-                    splitPoint, delay, tlsRecords.size, readable
+                    splitPoint, delay, tlsRecords.size, bytes.size
                 )
                 return
             }
         }
 
         // Fallback: SNI not found or split point invalid — use random TCP fragmentation
-        logger.debug("SNI not found in ClientHello ({} bytes), using random TCP fragmentation", readable)
-        HttpServiceUtils.splitAndWriteByteBuf(buf, channel)
+        logger.debug("SNI not found in ClientHello ({} bytes), using random TCP fragmentation", bytes.size)
+        buf.release()
+        val fallbackBuf = Unpooled.wrappedBuffer(bytes)
+        HttpServiceUtils.splitAndWriteByteBuf(fallbackBuf, channel)
     }
 
     private fun readUint16(data: ByteArray, offset: Int): Int {

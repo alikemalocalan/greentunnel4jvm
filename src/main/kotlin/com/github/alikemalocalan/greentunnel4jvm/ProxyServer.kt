@@ -11,7 +11,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 
-class ProxyServer {
+class ProxyServer(private val isAggressiveMode: Boolean = false) {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     private val workerGroup = MultiThreadIoEventLoopGroup(10,NioIoHandler.newFactory())
@@ -30,7 +30,7 @@ class ProxyServer {
             bootstrap.childHandler(object : ChannelInitializer<SocketChannel>() {
                 override fun initChannel(ch: SocketChannel) {
                     ch.pipeline().addLast(
-                        ProxyClientHandler()
+                        ProxyClientHandler(isAggressiveMode)
                     )
                 }
             }).bind(port).sync().channel().closeFuture().sync()

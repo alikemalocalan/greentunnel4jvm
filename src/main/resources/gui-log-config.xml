@@ -6,6 +6,8 @@
         </encoder>
     </appender>
     <logger name="com.github.alikemalocalan.greentunnel4jvm.ProxyServer" level="INFO"/>
+    <logger name="com.github.alikemalocalan.greentunnel4jvm.utils.ClientHelloPadder" level="INFO"/>
+    <logger name="com.github.alikemalocalan.greentunnel4jvm.utils.TlsUtils" level="INFO"/>
     <appender name="GUI" class="com.github.alikemalocalan.greentunnel4jvm.logger.Appender"/>
 
     <root level="INFO">

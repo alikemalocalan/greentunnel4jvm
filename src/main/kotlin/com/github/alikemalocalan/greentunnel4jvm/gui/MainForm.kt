@@ -13,9 +13,10 @@ class MainForm : JFrame() {
     private val scrollPane = JScrollPane(loggerText)
     private val portLabel = JLabel("Proxy Port :")
     private val button = JButton("Start")
-    private val portInputField = JTextField("8080", 10)
+    private val portInputField = JTextField("8080", 6)
     private val systemProxyCheckBox = JCheckBox("Auto System Proxy", false)
-    private val WINDOW_WIDTH = 650
+    private val aggressiveModeCheckBox = JCheckBox("Aggressive Mode (Padding)", false)
+    private val WINDOW_WIDTH = 750
     private val WINDOW_HEIGHT = 400
 
     @Volatile
@@ -26,10 +27,11 @@ class MainForm : JFrame() {
         button.addActionListener { e -> startServerButtonListener(e) }
 
         SwingUtilities.invokeLater {
-            panel.add(portLabel, BorderLayout.LINE_START)
-            panel.add(portInputField, BorderLayout.LINE_START)
+            panel.add(portLabel)
+            panel.add(portInputField)
             panel.add(systemProxyCheckBox)
-            panel.add(button, BorderLayout.LINE_END)
+            panel.add(aggressiveModeCheckBox)
+            panel.add(button)
             add(panel, BorderLayout.NORTH)
             add(scrollPane, BorderLayout.CENTER)
             title = "Greentunnel Proxy"
@@ -46,7 +48,7 @@ class MainForm : JFrame() {
             if (serverThread == null) {
                 val port = HttpServiceUtils.availablePort(portInputField.text)
                 this.port = port
-                serverThread = ServerThread("ServerThread", this.port).also { it.start() }
+                serverThread = ServerThread("ServerThread", this.port, aggressiveModeCheckBox.isSelected).also { it.start() }
                 if (systemProxyCheckBox.isSelected) {
                     SystemProxyUtil.getSystemProxySetting().enableProxy(this.port)
                 }

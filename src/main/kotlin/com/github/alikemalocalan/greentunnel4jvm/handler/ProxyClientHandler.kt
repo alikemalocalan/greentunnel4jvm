@@ -15,7 +15,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.InetSocketAddress
 
-class ProxyClientHandler : ChannelInboundHandlerAdapter() {
+class ProxyClientHandler(private val isAggressiveMode: Boolean = false) : ChannelInboundHandlerAdapter() {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     companion object {
@@ -49,7 +49,7 @@ class ProxyClientHandler : ChannelInboundHandlerAdapter() {
         }
 
         remoteChannel?.let { // request take second time from the client
-            TlsUtils.splitAtSni(buf, remoteChannel)
+            TlsUtils.splitAtSni(buf, remoteChannel, isAggressiveMode)
         } ?: HttpServiceUtils.httpRequestFromByteBuf(buf)
             .ifPresent { request ->  // request take first time from the client
                 ctx.channel().attr(TARGET_HOST_KEY).set(request.host())
