@@ -44,7 +44,7 @@ Agrega la dependencia:
 
 ```groovy
 dependencies {
-    implementation 'com.github.alikemalocalan:greentunnel4jvm:2.7.9-SNAPSHOT'
+    implementation 'com.github.alikemalocalan:greentunnel4jvm:2.8.0'
 }
 ```
 
@@ -56,7 +56,7 @@ La configuración del proxy del sistema se establecerá automáticamente solo pa
 Aún no se ha implementado para Windows, debes configurarlo manualmente en la configuración de red de tu sistema o de Firefox.
 
 ## Descargar
-[greentunnel4jvm.jar](https://github.com/alikemalocalan/greentunnel4jvm/releases/download/2.7.9-SNAPSHOT/greentunnel4jvm.jar)
+[greentunnel4jvm.jar](https://github.com/alikemalocalan/greentunnel4jvm/releases/download/2.8.0/greentunnel4jvm.jar)
 
 ## Gracias por la motivación a [0x01h](https://github.com/0x01h)
 
