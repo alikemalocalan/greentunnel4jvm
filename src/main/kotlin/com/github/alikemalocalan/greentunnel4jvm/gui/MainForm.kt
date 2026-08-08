@@ -14,7 +14,8 @@ class MainForm : JFrame() {
     private val portLabel = JLabel("Proxy Port :")
     private val button = JButton("Start")
     private val portInputField = JTextField("8080", 10)
-    private val WINDOW_WIDTH = 600
+    private val systemProxyCheckBox = JCheckBox("Auto System Proxy", false)
+    private val WINDOW_WIDTH = 650
     private val WINDOW_HEIGHT = 400
 
     @Volatile
@@ -27,6 +28,7 @@ class MainForm : JFrame() {
         SwingUtilities.invokeLater {
             panel.add(portLabel, BorderLayout.LINE_START)
             panel.add(portInputField, BorderLayout.LINE_START)
+            panel.add(systemProxyCheckBox)
             panel.add(button, BorderLayout.LINE_END)
             add(panel, BorderLayout.NORTH)
             add(scrollPane, BorderLayout.CENTER)
@@ -45,13 +47,17 @@ class MainForm : JFrame() {
                 val port = HttpServiceUtils.availablePort(portInputField.text)
                 this.port = port
                 serverThread = ServerThread("ServerThread", this.port).also { it.start() }
-                SystemProxyUtil.getSystemProxySetting().enableProxy(this.port)
+                if (systemProxyCheckBox.isSelected) {
+                    SystemProxyUtil.getSystemProxySetting().enableProxy(this.port)
+                }
                 SwingUtilities.invokeLater {
                     portInputField.text = port.toString()
                     button.text = "Stop"
                 }
             } else {
-                SystemProxyUtil.getSystemProxySetting().disableProxy()
+                if (systemProxyCheckBox.isSelected) {
+                    SystemProxyUtil.getSystemProxySetting().disableProxy()
+                }
                 serverThread?.stopServer()
                 serverThread = null
                 SwingUtilities.invokeLater {
