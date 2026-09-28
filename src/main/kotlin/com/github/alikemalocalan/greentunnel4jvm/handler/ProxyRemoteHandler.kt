@@ -2,6 +2,7 @@ package com.github.alikemalocalan.greentunnel4jvm.handler
 
 import com.github.alikemalocalan.greentunnel4jvm.models.HttpRequest
 import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
+import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import org.slf4j.Logger
@@ -16,11 +17,20 @@ class ProxyRemoteHandler(private val clientChannel: ChannelHandlerContext, priva
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         if (!clientChannel.channel().isActive) {
+            if (msg is ByteBuf) {
+                msg.release()
+            }
             ctx.close()
             return
         }
 
-        val future = clientChannel.writeAndFlush(msg)
+        val msgToSend = if (msg is ByteBuf) {
+            HttpServiceUtils.stripAltSvcFromByteBuf(msg)
+        } else {
+            msg
+        }
+
+        val future = clientChannel.writeAndFlush(msgToSend)
         future.addListener { f ->
             if (!f.isSuccess) {
                 val cause = f.cause()

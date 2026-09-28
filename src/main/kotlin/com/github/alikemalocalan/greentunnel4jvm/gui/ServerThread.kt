@@ -3,10 +3,10 @@ package com.github.alikemalocalan.greentunnel4jvm.gui
 import com.github.alikemalocalan.greentunnel4jvm.ProxyServer
 import java.util.concurrent.atomic.AtomicBoolean
 
-class ServerThread(name: String, private val port: Int, private val isAggressiveMode: Boolean = false) : Thread(name) {
+class ServerThread(name: String, private val port: Int) : Thread(name) {
     private val running: AtomicBoolean = AtomicBoolean(false)
 
-    private val serverBuilder = ProxyServer(isAggressiveMode)
+    private val serverBuilder = ProxyServer()
 
     override fun run() {
         running.set(true)

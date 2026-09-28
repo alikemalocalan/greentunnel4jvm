@@ -15,7 +15,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.InetSocketAddress
 
-class ProxyClientHandler(private val isAggressiveMode: Boolean = false) : ChannelInboundHandlerAdapter() {
+class ProxyClientHandler : ChannelInboundHandlerAdapter() {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     companion object {
@@ -31,14 +31,17 @@ class ProxyClientHandler(private val isAggressiveMode: Boolean = false) : Channe
                     .channel(NioSocketChannel::class.java)
                     .option(ChannelOption.TCP_NODELAY, true)
                     .option(ChannelOption.SO_KEEPALIVE, true)
+                    .option(ChannelOption.SO_REUSEADDR, true)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
                     .also { sharedBootstrap = it }
             }
         }
     }
 
+    private var isClientHelloSent: Boolean = false
+
     override fun channelActive(ctx: ChannelHandlerContext) {
-        ctx.writeAndFlush(firstHttpsResponse()) // if https,return respond 200
+        super.channelActive(ctx)
     }
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
@@ -46,50 +49,87 @@ class ProxyClientHandler(private val isAggressiveMode: Boolean = false) : Channe
         val remoteChannel: Channel? = ctx.channel().attr(REMOTE_CHANNEL_KEY).get()
         fun deleteRemoteChannel() {
             ctx.channel().attr(REMOTE_CHANNEL_KEY).set(null)
+            isClientHelloSent = false
         }
 
-        remoteChannel?.let { // request take second time from the client
-            TlsUtils.splitAtSni(buf, remoteChannel, isAggressiveMode)
-        } ?: HttpServiceUtils.httpRequestFromByteBuf(buf)
-            .ifPresent { request ->  // request take first time from the client
-                ctx.channel().attr(TARGET_HOST_KEY).set(request.host())
-                val remoteAddressOpt = request.toInetSocketAddress()
-                if (remoteAddressOpt.isEmpty) {
-                    // DNSOverHttps blocked host
-                    ctx.writeAndFlush(simple200Response()).addListener(ChannelFutureListener.CLOSE)
-                } else
-                    if (request.isHttps) {
-                        sendRequestToRemoteChannel(ctx, request, remoteAddressOpt.get())
-                    } else { //if http,force to https without any remote connection
-                        val response = HttpServiceUtils.redirectHttpToHttps(request.host())
-                        ctx.writeAndFlush(response)
-                        deleteRemoteChannel()
-                    }
+        remoteChannel?.let {
+            if (!isClientHelloSent) {
+                isClientHelloSent = true
+                TlsUtils.splitAtSni(buf, remoteChannel)
+            } else {
+                // Handshake already completed, stream application data directly at full line speed
+                remoteChannel.writeAndFlush(buf)
             }
+        } ?: run {
+            val reqOpt = HttpServiceUtils.httpRequestFromByteBuf(buf)
+            if (reqOpt.isPresent) {
+                val request = reqOpt.get()
+                ctx.channel().attr(TARGET_HOST_KEY).set(request.host())
+                if (!request.isHttps) {
+                    // if http, force to https without any remote connection
+                    val response = HttpServiceUtils.redirectHttpToHttps(request.host())
+                    ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
+                    deleteRemoteChannel()
+                } else {
+                    val remoteAddressOpt = request.toInetSocketAddress()
+                    if (remoteAddressOpt.isEmpty) {
+                        // DNSOverHttps blocked host
+                        ctx.writeAndFlush(simple200Response()).addListener(ChannelFutureListener.CLOSE)
+                    } else {
+                        sendRequestToRemoteChannel(ctx, request, remoteAddressOpt.get())
+                    }
+                }
+            } else {
+                // Active probe scanner defense: serve realistic Nginx 404 page
+                logger.warn("Active probe or unrecognized request detected, serving benign Nginx 404")
+                ctx.writeAndFlush(HttpServiceUtils.nginx404Response()).addListener(ChannelFutureListener.CLOSE)
+            }
+        }
     }
 
     private fun sendRequestToRemoteChannel(
         ctx: ChannelHandlerContext,
         request: HttpRequest,
-        remoteAddress: InetSocketAddress
+        remoteAddress: InetSocketAddress,
+        isRetry: Boolean = false
     ): Channel {
         ctx.channel().config().isAutoRead = false
 
-        val remoteFuture = getBootstrap().clone()
+        val bootstrap = getBootstrap().clone()
             .group(ctx.channel().eventLoop())
             .handler(ProxyRemoteHandler(ctx, request))
-            .connect(remoteAddress)
+
+        val remoteFuture = if (HttpServiceUtils.isPortRotateEnabled) {
+            val localAddress = if (remoteAddress.address is java.net.Inet6Address) {
+                InetSocketAddress(java.net.Inet6Address.getByAddress(ByteArray(16)), 0)
+            } else {
+                InetSocketAddress(0)
+            }
+            try {
+                bootstrap.connect(remoteAddress, localAddress)
+            } catch (_: Exception) {
+                bootstrap.connect(remoteAddress)
+            }
+        } else {
+            bootstrap.connect(remoteAddress)
+        }
 
         remoteFuture.addListener(ChannelFutureListener { future ->
             if (future.isSuccess) {
                 val remoteChannel = future.channel()
                 ctx.channel().attr(REMOTE_CHANNEL_KEY).set(remoteChannel)
+                ctx.writeAndFlush(firstHttpsResponse())
                 ctx.channel().config().isAutoRead = true
-                logger.debug("Successfully connected to remote: {} ({})", request.host(), remoteAddress)
+                logger.debug("Successfully connected to remote: {} ({}) [portRotate={}]", request.host(), remoteAddress, HttpServiceUtils.isPortRotateEnabled)
             } else {
-                ctx.channel().config().isAutoRead = true
-                logger.error("Connection failed to ${request.host()} (${remoteAddress.hostName}:${remoteAddress.port}): ${future.cause()?.message}")
-                ctx.close()
+                if (!isRetry && HttpServiceUtils.isPortRotateEnabled && ctx.channel().isActive) {
+                    logger.warn("Initial connection failed to {} ({}), rotating TCP source port and retrying...", request.host(), remoteAddress)
+                    sendRequestToRemoteChannel(ctx, request, remoteAddress, isRetry = true)
+                } else {
+                    ctx.channel().config().isAutoRead = true
+                    logger.error("Connection failed to ${request.host()} (${remoteAddress.hostName}:${remoteAddress.port}): ${future.cause()?.message}")
+                    ctx.close()
+                }
             }
         })
         return remoteFuture.channel()

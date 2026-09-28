@@ -1,5 +1,6 @@
 package com.github.alikemalocalan.greentunnel4jvm.gui
 
+import com.github.alikemalocalan.greentunnel4jvm.utils.DNSOverHttps
 import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
 import com.github.alikemalocalan.greentunnel4jvm.utils.SystemProxyUtil
 import java.awt.BorderLayout
@@ -15,8 +16,12 @@ class MainForm : JFrame() {
     private val button = JButton("Start")
     private val portInputField = JTextField("8080", 6)
     private val systemProxyCheckBox = JCheckBox("Auto System Proxy", false)
-    private val aggressiveModeCheckBox = JCheckBox("Aggressive Mode (Padding)", false)
-    private val WINDOW_WIDTH = 750
+    private val dohCheckBox = JCheckBox("DNS over HTTPS (DoH)", true)
+    private val stripAltSvcCheckBox = JCheckBox("Strip Alt-Svc", true)
+    private val portRotateCheckBox = JCheckBox("Port Rotate", true)
+    private val trailingDotCheckBox = JCheckBox("Trailing Dot", true)
+    private val spaceInsertCheckBox = JCheckBox("Space Insert", true)
+    private val WINDOW_WIDTH = 1080
     private val WINDOW_HEIGHT = 400
 
     @Volatile
@@ -25,12 +30,31 @@ class MainForm : JFrame() {
 
     init {
         button.addActionListener { e -> startServerButtonListener(e) }
+        dohCheckBox.addActionListener {
+            DNSOverHttps.isDohEnabled = dohCheckBox.isSelected
+        }
+        stripAltSvcCheckBox.addActionListener {
+            HttpServiceUtils.isStripAltSvcEnabled = stripAltSvcCheckBox.isSelected
+        }
+        portRotateCheckBox.addActionListener {
+            HttpServiceUtils.isPortRotateEnabled = portRotateCheckBox.isSelected
+        }
+        trailingDotCheckBox.addActionListener {
+            HttpServiceUtils.isTrailingDotEnabled = trailingDotCheckBox.isSelected
+        }
+        spaceInsertCheckBox.addActionListener {
+            HttpServiceUtils.isSpaceInsertionEnabled = spaceInsertCheckBox.isSelected
+        }
 
         SwingUtilities.invokeLater {
             panel.add(portLabel)
             panel.add(portInputField)
             panel.add(systemProxyCheckBox)
-            panel.add(aggressiveModeCheckBox)
+            panel.add(dohCheckBox)
+            panel.add(stripAltSvcCheckBox)
+            panel.add(portRotateCheckBox)
+            panel.add(trailingDotCheckBox)
+            panel.add(spaceInsertCheckBox)
             panel.add(button)
             add(panel, BorderLayout.NORTH)
             add(scrollPane, BorderLayout.CENTER)
@@ -48,7 +72,12 @@ class MainForm : JFrame() {
             if (serverThread == null) {
                 val port = HttpServiceUtils.availablePort(portInputField.text)
                 this.port = port
-                serverThread = ServerThread("ServerThread", this.port, aggressiveModeCheckBox.isSelected).also { it.start() }
+                DNSOverHttps.isDohEnabled = dohCheckBox.isSelected
+                HttpServiceUtils.isStripAltSvcEnabled = stripAltSvcCheckBox.isSelected
+                HttpServiceUtils.isPortRotateEnabled = portRotateCheckBox.isSelected
+                HttpServiceUtils.isTrailingDotEnabled = trailingDotCheckBox.isSelected
+                HttpServiceUtils.isSpaceInsertionEnabled = spaceInsertCheckBox.isSelected
+                serverThread = ServerThread("ServerThread", this.port).also { it.start() }
                 if (systemProxyCheckBox.isSelected) {
                     SystemProxyUtil.getSystemProxySetting().enableProxy(this.port)
                 }

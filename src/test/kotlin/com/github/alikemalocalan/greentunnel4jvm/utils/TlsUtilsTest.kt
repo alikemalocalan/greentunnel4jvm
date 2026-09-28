@@ -1,6 +1,8 @@
 package com.github.alikemalocalan.greentunnel4jvm.utils
 
+import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import io.netty.channel.embedded.EmbeddedChannel
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -34,6 +36,14 @@ class TlsUtilsTest {
         val sniInfo = TlsUtils.findSniInfo(clientHelloNoSni)
 
         assertNull(sniInfo)
+    }
+
+    @Test
+    fun `DNSOverHttps should resolve domain when DoH is toggled`() {
+        DNSOverHttps.isDohEnabled = false
+        val resSystem = DNSOverHttps.lookUp("firefox-portal-detection.com")
+        assertTrue(resSystem.isPresent, "Expected IP to be resolved via system DNS")
+        DNSOverHttps.isDohEnabled = true
     }
 
     /**
@@ -120,4 +130,71 @@ class TlsUtilsTest {
 
         return record.toByteArray()
     }
+
+    @Test
+    fun `splitAtSni should fragment ClientHello with valid SNI and write to channel`() {
+        val channel = EmbeddedChannel()
+        val originalBytes = buildSyntheticClientHello("example.com")
+        val buf = Unpooled.copiedBuffer(originalBytes)
+
+        TlsUtils.splitAtSni(buf, channel, delayMs = 1L..2L)
+
+        val writtenBytes = mutableListOf<Byte>()
+        var chunk: ByteBuf? = channel.readOutbound()
+        var chunkCount = 0
+        while (chunk != null) {
+            chunkCount++
+            val bytes = ByteArray(chunk.readableBytes())
+            chunk.readBytes(bytes)
+            chunk.release()
+            writtenBytes.addAll(bytes.toList())
+            chunk = channel.readOutbound()
+        }
+
+        assertTrue(chunkCount >= 2, "Expected multiple fragments, got $chunkCount")
+        assertTrue(writtenBytes.size > originalBytes.size)
+    }
+
+    @Test
+    fun `splitAtSni fallback should work when SNI is missing`() {
+        val channel = EmbeddedChannel()
+        val originalBytes = buildSyntheticClientHello(hostname = null)
+        val buf = Unpooled.copiedBuffer(originalBytes)
+
+        TlsUtils.splitAtSni(buf, channel, delayMs = 1L..2L)
+
+        val writtenBytes = mutableListOf<Byte>()
+        var chunk: ByteBuf? = channel.readOutbound()
+        while (chunk != null) {
+            val bytes = ByteArray(chunk.readableBytes())
+            chunk.readBytes(bytes)
+            chunk.release()
+            writtenBytes.addAll(bytes.toList())
+            chunk = channel.readOutbound()
+        }
+
+        assertArrayEquals(originalBytes, writtenBytes.toByteArray())
+    }
+
+    @Test
+    fun `splitAndWriteWithDelay should split and write all data preserving content`() {
+        val channel = EmbeddedChannel()
+        val testData = ByteArray(300) { (it % 256).toByte() }
+        val buf = Unpooled.copiedBuffer(testData)
+
+        HttpServiceUtils.splitAndWriteWithDelay(buf, channel, delayMs = 1L..2L)
+
+        val writtenBytes = mutableListOf<Byte>()
+        var chunk: ByteBuf? = channel.readOutbound()
+        while (chunk != null) {
+            val bytes = ByteArray(chunk.readableBytes())
+            chunk.readBytes(bytes)
+            chunk.release()
+            writtenBytes.addAll(bytes.toList())
+            chunk = channel.readOutbound()
+        }
+
+        assertArrayEquals(testData, writtenBytes.toByteArray())
+    }
 }
+

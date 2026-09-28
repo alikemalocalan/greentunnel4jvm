@@ -3,7 +3,9 @@ package com.github.alikemalocalan.greentunnel4jvm.utils
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
+import io.netty.channel.embedded.EmbeddedChannel
 import org.slf4j.LoggerFactory
+import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 /**
@@ -161,7 +163,6 @@ object TlsUtils {
     fun splitAtSni(
         buf: ByteBuf,
         channel: Channel,
-        isAggressiveMode: Boolean = false,
         delayMs: LongRange = 1L..30L
     ) {
         val readable = buf.readableBytes()
@@ -171,19 +172,13 @@ object TlsUtils {
         }
 
         // Read bytes for parsing without advancing reader index
-        val rawBytes = ByteArray(readable)
-        buf.getBytes(buf.readerIndex(), rawBytes)
-
-        val bytes = if (isAggressiveMode && isClientHello(rawBytes)) {
-            ClientHelloPadder.pad(rawBytes)
-        } else {
-            rawBytes
-        }
+        val bytes = ByteArray(readable)
+        buf.getBytes(buf.readerIndex(), bytes)
 
         val sniInfo = findSniInfo(bytes)
 
         if (sniInfo != null && sniInfo.hostnameLength > 4) {
-            // Cut 3-8 bytes into the hostname (e.g., "youtube.com" → "yout|ube.com")
+            // Cut 3-8 bytes into the hostname (e.g., "youtube.com" -> "yout|ube.com")
             val maxCut = minOf(8, sniInfo.hostnameLength - 1)
             val cutInSni = Random.nextInt(3, maxCut + 1)
             val splitPoint = sniInfo.hostnameOffset + cutInSni
@@ -201,12 +196,23 @@ object TlsUtils {
 
                 // Layer 3: Inter-fragment delay to trigger DPI reassembly timeout
                 val delay = Random.nextLong(delayMs.first, delayMs.last + 1)
-                Thread.sleep(delay)
+                fun writeRemainingRecords() {
+                    if (channel.isActive) {
+                        for (i in 1 until tlsRecords.size) {
+                            val recordBuf = Unpooled.wrappedBuffer(tlsRecords[i])
+                            HttpServiceUtils.splitAndWriteByteBuf(recordBuf, channel)
+                        }
+                    }
+                }
 
-                // Send remaining TLS records with TCP fragmentation
-                for (i in 1 until tlsRecords.size) {
-                    val recordBuf = Unpooled.wrappedBuffer(tlsRecords[i])
-                    HttpServiceUtils.splitAndWriteByteBuf(recordBuf, channel)
+                if (channel is EmbeddedChannel) {
+                    writeRemainingRecords()
+                } else if (delay > 0 && channel.eventLoop() != null) {
+                    channel.eventLoop().schedule({
+                        writeRemainingRecords()
+                    }, delay, TimeUnit.MILLISECONDS)
+                } else {
+                    writeRemainingRecords()
                 }
 
                 logger.debug(
@@ -217,11 +223,11 @@ object TlsUtils {
             }
         }
 
-        // Fallback: SNI not found or split point invalid — use random TCP fragmentation
-        logger.debug("SNI not found in ClientHello ({} bytes), using random TCP fragmentation", bytes.size)
+        // Fallback: SNI not found or split point invalid — use random TCP fragmentation with delay
+        logger.debug("SNI not found in ClientHello ({} bytes), using random TCP fragmentation with delay", bytes.size)
         buf.release()
         val fallbackBuf = Unpooled.wrappedBuffer(bytes)
-        HttpServiceUtils.splitAndWriteByteBuf(fallbackBuf, channel)
+        HttpServiceUtils.splitAndWriteWithDelay(fallbackBuf, channel, delayMs)
     }
 
     private fun readUint16(data: ByteArray, offset: Int): Int {

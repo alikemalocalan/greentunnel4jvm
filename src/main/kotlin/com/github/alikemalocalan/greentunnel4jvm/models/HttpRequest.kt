@@ -1,6 +1,7 @@
 package com.github.alikemalocalan.greentunnel4jvm.models
 
 import com.github.alikemalocalan.greentunnel4jvm.utils.DNSOverHttps
+import com.github.alikemalocalan.greentunnel4jvm.utils.HttpServiceUtils
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import java.net.InetSocketAddress
@@ -32,14 +33,19 @@ data class HttpRequest(
 
     fun host(): String = uri.host
 
-    override fun toString(): String = String.format(
-        "%s  %s  %s%s%s",
-        method,
-        path(),
-        protocolVersion,
-        headersAsString(),
-        payload.map { payload -> "\r\n" + payload }.orElseGet { "" }
-    )
+    override fun toString(): String {
+        val spaces = if (HttpServiceUtils.isSpaceInsertionEnabled) "   " else " "
+        return String.format(
+            "%s%s%s%s%s%s%s",
+            method,
+            spaces,
+            path(),
+            spaces,
+            protocolVersion,
+            headersAsString(),
+            payload.map { payload -> "\r\n" + payload }.orElseGet { "" }
+        )
+    }
 
     fun toByteBuf(): ByteBuf =
         if (isHttps) Unpooled.EMPTY_BUFFER
