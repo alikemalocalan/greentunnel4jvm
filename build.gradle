@@ -28,10 +28,6 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-test {
-    useJUnitPlatform()
-}
-
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
@@ -45,25 +41,32 @@ kotlin {
     }
 }
 
-shadowJar {
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.named('shadowJar') {
     archiveBaseName.set(rootProject.name)
     archiveClassifier.set('')
     archiveVersion.set('')
+    filesMatching('**/*.kotlin_module') {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
 }
 
 tasks.register('sourcesJar', Jar) {
-    dependsOn classes
+    dependsOn tasks.named('classes')
     archiveClassifier.set("sources")
     from sourceSets.main.allSource
 }
+
 publishing {
     publications {
         githubPublish(MavenPublication) {
-            artifactId projectName
-            version projectVersion
-            //from components.java
-            artifact(sourcesJar)
-            artifact(jar)
+            artifactId = projectName
+            version = projectVersion
+            artifact(tasks.named('sourcesJar'))
+            artifact(tasks.named('jar'))
             pom {
                 name = projectName
                 description = 'Green Tunnel Alternative for JVM Languages'
@@ -90,7 +93,6 @@ publishing {
                 }
             }
         }
-
     }
     repositories {
         maven {
